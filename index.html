@@ -3,16 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Fellowship Trail</title>
+    <title>The Long Journey</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="game-screen">
-        <h1>The Fellowship Trail</h1>
-        <p id="status-message">Awaiting the Council of Elrond...</p>
-        <button id="start-btn">Depart Rivendell</button>
+    <div id="game-screen" class="screen">
+        <header>
+            <h2>Location: <span id="current-location">Starting Town</span></h2>
+            <div class="stats">
+                <p>Day: <span id="day">1</span></p>
+                <p>Distance: <span id="distance">0</span> / <span id="total-distance">2000</span> miles</p>
+                <p>Party Health: <span id="health-status">Good</span></p>
+                <p>Hazard Level: <span id="hazard-level">0</span>%</p>
+            </div>
+        </header>
+
+        <div class="management-panel">
+            <h3>The Party</h3>
+            <div id="party-list">
+                </div>
+            
+            <h3>Supplies</h3>
+            <div class="inventory-list">
+                <p>Food: <span id="food-supply">200</span> units</p>
+                <p>Medicine: <span id="medicine-supply">5</span> units</p>
+                <p>Currency: <span id="currency-supply">150</span> coins</p>
+            </div>
+        </div>
+
+        <div class="controls-panel">
+            <h3>Travel Settings</h3>
+            <p>Pace: 
+                <span id="current-pace" style="font-weight: bold;">Steady</span>
+            </p>
+            <div>
+                <button onclick="changeSetting('pace', 'Slow')">Slow</button>
+                <button onclick="changeSetting('pace', 'Steady')">Steady</button>
+                <button onclick="changeSetting('pace', 'Fast')">Fast</button>
+            </div>
+            
+            <p style="margin-top: 15px;">Rations: 
+                <span id="current-rations" style="font-weight: bold;">Normal</span>
+            </p>
+            <div>
+                <button onclick="changeSetting('rations', 'Meager')">Meager</button>
+                <button onclick="changeSetting('rations', 'Normal')">Normal</button>
+                <button onclick="changeSetting('rations', 'Filling')">Filling</button>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button id="travel-btn" style="background-color: #2a623d; width: 100%; padding: 15px; font-size: 1.2em;">Travel Next Day</button>
+            <button id="rest-btn" style="width: 100%; margin-top: 10px;">Rest & Heal (Consumes Food)</button>
+        </div>
+    </div>
+
+    <div id="custom-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3 id="modal-title">Daily Report</h3>
+            <p id="modal-message">Event details will appear here.</p>
+            <div id="modal-buttons" class="modal-buttons"></div>
+        </div>
     </div>
 
     <script src="app.js"></script>
 </body>
 </html>
+
