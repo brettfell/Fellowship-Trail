@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Long Journey</title>
+    <title>The Book's Burden</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,14 +14,13 @@
                 <p>Day: <span id="day">1</span></p>
                 <p>Distance: <span id="distance">0</span> / <span id="total-distance">2000</span> miles</p>
                 <p>Party Health: <span id="health-status">Good</span></p>
-                <p>Hazard Level: <span id="hazard-level">0</span>%</p>
+                <p style="color: purple;">Curse Level: <span id="curse-level">0</span>%</p>
             </div>
         </header>
 
         <div class="management-panel">
             <h3>The Party</h3>
-            <div id="party-list">
-                </div>
+            <div id="party-list"></div>
             
             <h3>Supplies</h3>
             <div class="inventory-list">
@@ -33,18 +32,14 @@
 
         <div class="controls-panel">
             <h3>Travel Settings</h3>
-            <p>Pace: 
-                <span id="current-pace" style="font-weight: bold;">Steady</span>
-            </p>
+            <p>Pace: <span id="current-pace" style="font-weight: bold;">Steady</span></p>
             <div>
                 <button onclick="changeSetting('pace', 'Slow')">Slow</button>
                 <button onclick="changeSetting('pace', 'Steady')">Steady</button>
                 <button onclick="changeSetting('pace', 'Fast')">Fast</button>
             </div>
             
-            <p style="margin-top: 15px;">Rations: 
-                <span id="current-rations" style="font-weight: bold;">Normal</span>
-            </p>
+            <p style="margin-top: 15px;">Rations: <span id="current-rations" style="font-weight: bold;">Normal</span></p>
             <div>
                 <button onclick="changeSetting('rations', 'Meager')">Meager</button>
                 <button onclick="changeSetting('rations', 'Normal')">Normal</button>
@@ -61,7 +56,7 @@
     <div id="custom-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <h3 id="modal-title">Daily Report</h3>
-            <p id="modal-message">Event details will appear here.</p>
+            <p id="modal-message"></p>
             <div id="modal-buttons" class="modal-buttons"></div>
         </div>
     </div>
@@ -69,4 +64,3 @@
     <script src="app.js"></script>
 </body>
 </html>
-
