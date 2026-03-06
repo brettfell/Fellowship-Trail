@@ -1,4 +1,4 @@
-// The Book's Burden - Game Engine v1.1
+// The Book's Burden - Game Engine v1.2 (Landmarks)
 
 const defaultState = {
     day: 1,
@@ -14,7 +14,6 @@ const defaultState = {
         currency: 150    
     },
 
-    // Your 9-Person Party
     party: [
         { name: "You (Main Character)", isAlive: true, health: 100, isMain: true },
         { name: "Friend 1", isAlive: true, health: 100 },
@@ -27,8 +26,18 @@ const defaultState = {
         { name: "Henchman", isAlive: true, health: 100 }
     ],
     
-    currentLocation: 'Starting Town'
+    currentLocation: 'Rivendell',
+    nextLandmarkIndex: 0
 };
+
+// The Route Map
+const landmarks = [
+    { name: "The Dark Mines", distance: 400, type: "hazard" },
+    { name: "Elven Stronghold", distance: 800, type: "town" },
+    { name: "The Great River", distance: 1300, type: "hazard" },
+    { name: "City of Men", distance: 1700, type: "town" },
+    { name: "Mount Doom", distance: 2000, type: "finish" }
+];
 
 let state = JSON.parse(JSON.stringify(defaultState));
 
@@ -108,60 +117,70 @@ function showModal(title, message, buttons = [{text: 'Continue', action: null}])
     modal.style.display = 'block';
 }
 
-// --- CORE TRAVEL LOGIC ---
+// --- LANDMARK & TRAVEL LOGIC ---
 travelBtn.addEventListener('click', () => {
     state.day++;
     let dailyMessage = "";
+    let arrivedAtLandmark = false;
 
-    // 1. Calculate how many people need to eat
-    const livingCount = state.party.filter(m => m.isAlive).length;
-    
-    // 2. Consume Food based on Rations
-    let foodNeeded = 0;
-    let healthChange = 0;
-
-    if (state.rations === 'Meager') {
-        foodNeeded = livingCount * 1;
-        healthChange = -5; // Starving slightly
-    } else if (state.rations === 'Normal') {
-        foodNeeded = livingCount * 2;
-        healthChange = 0; 
-    } else if (state.rations === 'Filling') {
-        foodNeeded = livingCount * 3;
-        healthChange = 5; // Healing slightly
-    }
-
-    if (state.inventory.food >= foodNeeded) {
-        state.inventory.food -= foodNeeded;
-    } else {
-        state.inventory.food = 0;
-        healthChange -= 15; // Starving heavily if out of food!
-        dailyMessage += "You are out of food! The party is starving. \n";
-    }
-
-    // 3. Calculate Distance and Pace Penalties
+    // 1. Determine base travel distance
     let milesCovered = 0;
     if (state.pace === 'Slow') {
-        milesCovered = Math.floor(Math.random() * 10) + 10; // 10-19 miles
-        state.curseLevel += 2; // Moving too slow lets the curse catch up
+        milesCovered = Math.floor(Math.random() * 10) + 10; 
+        state.curseLevel += 2; 
     } else if (state.pace === 'Steady') {
-        milesCovered = Math.floor(Math.random() * 10) + 20; // 20-29 miles
+        milesCovered = Math.floor(Math.random() * 10) + 20; 
         state.curseLevel += 1;
     } else if (state.pace === 'Fast') {
-        milesCovered = Math.floor(Math.random() * 10) + 30; // 30-39 miles
-        healthChange -= 10; // Exhausting the party
+        milesCovered = Math.floor(Math.random() * 10) + 30; 
+    }
+
+    // 2. Check if we hit a landmark today
+    const nextLandmark = landmarks[state.nextLandmarkIndex];
+    if (nextLandmark && (state.distanceTraveled + milesCovered) >= nextLandmark.distance) {
+        // Snap to the landmark's exact distance
+        milesCovered = nextLandmark.distance - state.distanceTraveled;
+        state.currentLocation = nextLandmark.name;
+        state.nextLandmarkIndex++;
+        arrivedAtLandmark = true;
+    } else {
+        state.currentLocation = "On the Road";
     }
 
     state.distanceTraveled += milesCovered;
     dailyMessage += `You traveled ${milesCovered} miles today. \n`;
 
-    // 4. Apply Health Changes to living members
+    // 3. Consume Food & Calculate Health Changes
+    const livingCount = state.party.filter(m => m.isAlive).length;
+    let foodNeeded = 0;
+    let healthChange = 0;
+
+    if (state.rations === 'Meager') {
+        foodNeeded = livingCount * 1;
+        healthChange = -5; 
+    } else if (state.rations === 'Normal') {
+        foodNeeded = livingCount * 2;
+        healthChange = 0; 
+    } else if (state.rations === 'Filling') {
+        foodNeeded = livingCount * 3;
+        healthChange = 5; 
+    }
+
+    if (state.pace === 'Fast') healthChange -= 10; 
+
+    if (state.inventory.food >= foodNeeded) {
+        state.inventory.food -= foodNeeded;
+    } else {
+        state.inventory.food = 0;
+        healthChange -= 15; 
+        dailyMessage += "You are out of food! The party is starving. \n";
+    }
+
+    // 4. Apply Health Changes
     state.party.forEach(member => {
         if (member.isAlive) {
             member.health += healthChange;
             if (member.health > 100) member.health = 100;
-            
-            // Check for death
             if (member.health <= 0) {
                 member.health = 0;
                 member.isAlive = false;
@@ -170,29 +189,32 @@ travelBtn.addEventListener('click', () => {
         }
     });
 
-    // 5. Check Game Over Conditions
+    // 5. Game Over Checks
     const mainCharacter = state.party.find(m => m.isMain);
     if (!mainCharacter.isAlive) {
         showModal("Game Over", "You have fallen. The cursed book will consume the world.", [{text: "Try Again", action: () => location.reload()}]);
         return;
     }
-
     if (state.curseLevel >= 100) {
         showModal("Game Over", "The curse has fully overtaken you. Your mind is gone.", [{text: "Try Again", action: () => location.reload()}]);
         return;
     }
 
-    if (state.distanceTraveled >= state.totalDistance) {
-        showModal("Victory!", "You reached the destination and destroyed the cursed book!", [{text: "Play Again", action: () => location.reload()}]);
-        return;
-    }
-
+    // 6. Output the daily result
     updateUI();
-    showModal(`Day ${state.day}`, dailyMessage);
+    
+    if (arrivedAtLandmark) {
+        if (nextLandmark.type === 'finish') {
+            showModal("Victory!", `You have reached ${nextLandmark.name} and destroyed the book!`, [{text: "Play Again", action: () => location.reload()}]);
+        } else {
+            showModal("Landmark Reached!", `${dailyMessage}\n\nYou have arrived at: ${nextLandmark.name}.`);
+        }
+    } else {
+        showModal(`Day ${state.day}`, dailyMessage);
+    }
 });
 
 restBtn.addEventListener('click', () => {
-    // Basic rest logic: lose a day, consume normal food, heal 15 HP, curse creeps up
     const livingCount = state.party.filter(m => m.isAlive).length;
     let foodNeeded = livingCount * 2;
     
@@ -200,7 +222,7 @@ restBtn.addEventListener('click', () => {
         state.inventory.food -= foodNeeded;
         state.party.forEach(m => { if (m.isAlive) { m.health = Math.min(100, m.health + 15); } });
         state.day++;
-        state.curseLevel += 2; // The curse grows while you sit still
+        state.curseLevel += 2; 
         updateUI();
         showModal("Camped", "The party rested and healed 15 HP, but the curse grows stronger.");
     } else {
