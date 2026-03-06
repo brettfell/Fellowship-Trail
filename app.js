@@ -135,9 +135,19 @@ function showModal(title, message, buttons = [{text: 'Continue', action: null}],
     const modalButtons = document.getElementById('modal-buttons');
     modalButtons.innerHTML = ''; 
 
+    // NEW: Forces buttons to stack vertically and adds a scrollbar!
+    modalButtons.style.display = 'flex';
+    modalButtons.style.flexDirection = 'column';
+    modalButtons.style.gap = '10px';
+    modalButtons.style.maxHeight = '40vh'; 
+    modalButtons.style.overflowY = 'auto';
+    modalButtons.style.padding = '5px';
+
     buttons.forEach(btn => {
         const buttonEl = document.createElement('button');
         buttonEl.innerText = btn.text;
+        buttonEl.style.width = '100%'; // Makes buttons stretch nicely
+        buttonEl.style.margin = '0';
         buttonEl.onclick = () => {
             modal.style.display = 'none'; 
             if (btn.action) btn.action(); 
