@@ -1,29 +1,29 @@
-// The Book's Burden - Game Engine v1.2 (Landmarks)
+// The Fellowship Trail - Game Engine v1.3
 
 const defaultState = {
     day: 1,
     distanceTraveled: 0,
     totalDistance: 2000, 
-    curseLevel: 0,      
+    ringCorruption: 0,      
     pace: 'Steady',      
     rations: 'Normal',  
     
     inventory: {
-        food: 300,      
-        medicine: 5,     
-        currency: 150    
+        food: 300,      // Lembas Bread
+        medicine: 5,    // Athelas
+        currency: 150   // Silver Pennies
     },
 
     party: [
-        { name: "You (Main Character)", isAlive: true, health: 100, isMain: true },
-        { name: "Friend 1", isAlive: true, health: 100 },
-        { name: "Friend 2", isAlive: true, health: 100 },
-        { name: "Friend 3", isAlive: true, health: 100 },
-        { name: "Swordsman Guard", isAlive: true, health: 100 },
-        { name: "Archer Guard", isAlive: true, health: 100 },
-        { name: "Mage", isAlive: true, health: 100 },
-        { name: "Axeman", isAlive: true, health: 100 },
-        { name: "Henchman", isAlive: true, health: 100 }
+        { name: "Frodo", isAlive: true, health: 100, isRingbearer: true },
+        { name: "Sam", isAlive: true, health: 100 },
+        { name: "Aragorn", isAlive: true, health: 100 },
+        { name: "Legolas", isAlive: true, health: 100 },
+        { name: "Gimli", isAlive: true, health: 100 },
+        { name: "Gandalf", isAlive: true, health: 100 },
+        { name: "Boromir", isAlive: true, health: 100 },
+        { name: "Merry", isAlive: true, health: 100 },
+        { name: "Pippin", isAlive: true, health: 100 }
     ],
     
     currentLocation: 'Rivendell',
@@ -32,10 +32,10 @@ const defaultState = {
 
 // The Route Map
 const landmarks = [
-    { name: "The Dark Mines", distance: 400, type: "hazard" },
-    { name: "Elven Stronghold", distance: 800, type: "town" },
-    { name: "The Great River", distance: 1300, type: "hazard" },
-    { name: "City of Men", distance: 1700, type: "town" },
+    { name: "The Mines of Moria", distance: 400, type: "hazard" },
+    { name: "Lothlórien", distance: 800, type: "town" },
+    { name: "The Argonath", distance: 1300, type: "hazard" },
+    { name: "Minas Tirith", distance: 1700, type: "town" },
     { name: "Mount Doom", distance: 2000, type: "finish" }
 ];
 
@@ -58,7 +58,7 @@ function updateUI() {
     document.getElementById('day').innerText = state.day;
     document.getElementById('distance').innerText = state.distanceTraveled;
     document.getElementById('total-distance').innerText = state.totalDistance;
-    document.getElementById('curse-level').innerText = state.curseLevel;
+    document.getElementById('corruption-level').innerText = state.ringCorruption;
     
     document.getElementById('food-supply').innerText = state.inventory.food;
     document.getElementById('medicine-supply').innerText = state.inventory.medicine;
@@ -79,7 +79,7 @@ function updateUI() {
             totalHealth += member.health;
             partyListEl.innerHTML += `<p><strong>${member.name}</strong>: ${member.health} HP</p>`;
         } else {
-            partyListEl.innerHTML += `<p style="color: red; text-decoration: line-through;">${member.name} (Deceased)</p>`;
+            partyListEl.innerHTML += `<p style="color: red; text-decoration: line-through;">${member.name} (Fallen)</p>`;
         }
     });
 
@@ -125,26 +125,25 @@ travelBtn.addEventListener('click', () => {
 
     // 1. Determine base travel distance
     let milesCovered = 0;
-    if (state.pace === 'Slow') {
+    if (state.pace === 'Cautious') {
         milesCovered = Math.floor(Math.random() * 10) + 10; 
-        state.curseLevel += 2; 
+        state.ringCorruption += 2; 
     } else if (state.pace === 'Steady') {
         milesCovered = Math.floor(Math.random() * 10) + 20; 
-        state.curseLevel += 1;
-    } else if (state.pace === 'Fast') {
+        state.ringCorruption += 1;
+    } else if (state.pace === 'Grueling') {
         milesCovered = Math.floor(Math.random() * 10) + 30; 
     }
 
     // 2. Check if we hit a landmark today
     const nextLandmark = landmarks[state.nextLandmarkIndex];
     if (nextLandmark && (state.distanceTraveled + milesCovered) >= nextLandmark.distance) {
-        // Snap to the landmark's exact distance
         milesCovered = nextLandmark.distance - state.distanceTraveled;
         state.currentLocation = nextLandmark.name;
         state.nextLandmarkIndex++;
         arrivedAtLandmark = true;
     } else {
-        state.currentLocation = "On the Road";
+        state.currentLocation = "In the Wilds";
     }
 
     state.distanceTraveled += milesCovered;
@@ -166,14 +165,14 @@ travelBtn.addEventListener('click', () => {
         healthChange = 5; 
     }
 
-    if (state.pace === 'Fast') healthChange -= 10; 
+    if (state.pace === 'Grueling') healthChange -= 10; 
 
     if (state.inventory.food >= foodNeeded) {
         state.inventory.food -= foodNeeded;
     } else {
         state.inventory.food = 0;
         healthChange -= 15; 
-        dailyMessage += "You are out of food! The party is starving. \n";
+        dailyMessage += "You are out of Lembas bread! The Fellowship is starving. \n";
     }
 
     // 4. Apply Health Changes
@@ -184,19 +183,19 @@ travelBtn.addEventListener('click', () => {
             if (member.health <= 0) {
                 member.health = 0;
                 member.isAlive = false;
-                dailyMessage += `${member.name} has succumbed to the journey... \n`;
+                dailyMessage += `${member.name} has fallen... \n`;
             }
         }
     });
 
     // 5. Game Over Checks
-    const mainCharacter = state.party.find(m => m.isMain);
-    if (!mainCharacter.isAlive) {
-        showModal("Game Over", "You have fallen. The cursed book will consume the world.", [{text: "Try Again", action: () => location.reload()}]);
+    const ringbearer = state.party.find(m => m.isRingbearer);
+    if (!ringbearer.isAlive) {
+        showModal("Game Over", "Frodo has fallen. The Ring is lost, and Middle-earth will fall into shadow.", [{text: "Try Again", action: () => location.reload()}]);
         return;
     }
-    if (state.curseLevel >= 100) {
-        showModal("Game Over", "The curse has fully overtaken you. Your mind is gone.", [{text: "Try Again", action: () => location.reload()}]);
+    if (state.ringCorruption >= 100) {
+        showModal("Game Over", "The Ring has fully corrupted Frodo. He has claimed it for himself.", [{text: "Try Again", action: () => location.reload()}]);
         return;
     }
 
@@ -205,7 +204,7 @@ travelBtn.addEventListener('click', () => {
     
     if (arrivedAtLandmark) {
         if (nextLandmark.type === 'finish') {
-            showModal("Victory!", `You have reached ${nextLandmark.name} and destroyed the book!`, [{text: "Play Again", action: () => location.reload()}]);
+            showModal("Victory!", `You have reached the fires of ${nextLandmark.name} and destroyed the One Ring!`, [{text: "Play Again", action: () => location.reload()}]);
         } else {
             showModal("Landmark Reached!", `${dailyMessage}\n\nYou have arrived at: ${nextLandmark.name}.`);
         }
@@ -222,10 +221,10 @@ restBtn.addEventListener('click', () => {
         state.inventory.food -= foodNeeded;
         state.party.forEach(m => { if (m.isAlive) { m.health = Math.min(100, m.health + 15); } });
         state.day++;
-        state.curseLevel += 2; 
+        state.ringCorruption += 2; 
         updateUI();
-        showModal("Camped", "The party rested and healed 15 HP, but the curse grows stronger.");
+        showModal("Camped", "The Fellowship rested and healed 15 HP, but the Ring's corruption grows heavier the longer you delay.");
     } else {
-        showModal("Cannot Rest", "You do not have enough food to make camp safely!");
+        showModal("Cannot Rest", "You do not have enough Lembas bread to make camp safely!");
     }
 });
