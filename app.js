@@ -1,4 +1,4 @@
-// The Fellowship Trail - Game Engine v1.11
+// The Fellowship Trail - Game Engine v1.12
 
 const defaultState = {
     day: 1,
@@ -120,6 +120,7 @@ function updateUI() {
     }
 }
 
+// --- V1.12 UPDATED MODAL WITH FLEXBOX SCROLLING ---
 function showModal(title, message, buttons = [{text: 'Continue', action: null}], gifUrl = null) {
     document.getElementById('modal-title').innerText = title;
     document.getElementById('modal-message').innerHTML = message.replace(/\n/g, '<br>'); 
@@ -135,7 +136,7 @@ function showModal(title, message, buttons = [{text: 'Continue', action: null}],
     const modalButtons = document.getElementById('modal-buttons');
     modalButtons.innerHTML = ''; 
 
-    // NEW: Forces buttons to stack vertically and adds a scrollbar!
+    // Flexbox code to stack the buttons vertically and allow scrolling
     modalButtons.style.display = 'flex';
     modalButtons.style.flexDirection = 'column';
     modalButtons.style.gap = '10px';
@@ -146,7 +147,7 @@ function showModal(title, message, buttons = [{text: 'Continue', action: null}],
     buttons.forEach(btn => {
         const buttonEl = document.createElement('button');
         buttonEl.innerText = btn.text;
-        buttonEl.style.width = '100%'; // Makes buttons stretch nicely
+        buttonEl.style.width = '100%'; 
         buttonEl.style.margin = '0';
         buttonEl.onclick = () => {
             modal.style.display = 'none'; 
@@ -157,11 +158,10 @@ function showModal(title, message, buttons = [{text: 'Continue', action: null}],
     modal.style.display = 'block';
 }
 
-// --- INTERACTIVE RANDOM EVENT ENGINE ---
+// --- INTERACTIVE RANDOM EVENT ENGINE WITH GIFS ---
 function getRandomEvent() {
-    const defaultReturn = { text: "", buttons: [{text: 'Continue', action: null}] };
+    const defaultReturn = { text: "", buttons: [{text: 'Continue', action: null}], gifUrl: null };
     
-    // Increased chance to 45% so you see trades more often
     if (Math.random() > 0.45) return defaultReturn;
 
     const livingMembers = state.party.filter(m => m.isAlive);
@@ -169,38 +169,55 @@ function getRandomEvent() {
     const randomMember = livingMembers[Math.floor(Math.random() * livingMembers.length)];
     
     const events = [
-        // Passive Events (Return standard Continue button)
         () => {
             if (randomMember.status !== 'Healthy') return defaultReturn; 
             randomMember.status = 'Sick';
-            return { text: `<br><br><span style="color: orange;">⚠️ <strong>Bad Water:</strong> ${randomMember.name} drank from a stagnant pool and is now Sick! (-5 extra HP per day)</span>`, buttons: [{text: 'Continue', action: null}] };
+            return { 
+                text: `<br><br><span style="color: orange;">⚠️ <strong>Bad Water:</strong> ${randomMember.name} drank from a stagnant pool and is now Sick! (-5 extra HP per day)</span>`, 
+                buttons: [{text: 'Continue', action: null}],
+                gifUrl: 'sick.gif' // Add sick.gif to your repo!
+            };
         },
         () => {
             if (randomMember.status !== 'Healthy') return defaultReturn;
             randomMember.status = 'Injured';
-            return { text: `<br><br><span style="color: orange;">⚠️ <strong>Rough Terrain:</strong> ${randomMember.name} took a nasty fall and is Injured! (-8 extra HP per day)</span>`, buttons: [{text: 'Continue', action: null}] };
+            return { 
+                text: `<br><br><span style="color: orange;">⚠️ <strong>Rough Terrain:</strong> ${randomMember.name} took a nasty fall and is Injured! (-8 extra HP per day)</span>`, 
+                buttons: [{text: 'Continue', action: null}],
+                gifUrl: 'injured.gif' // Add injured.gif
+            };
         },
         () => {
             if (randomMember.status !== 'Healthy') return defaultReturn;
             randomMember.status = 'Poisoned';
-            return { text: `<br><br><span style="color: red;">🕷️ <strong>Spider Bite!</strong> ${randomMember.name} was bitten in the night and is Poisoned! (-12 extra HP per day)</span>`, buttons: [{text: 'Continue', action: null}] };
+            return { 
+                text: `<br><br><span style="color: red;">🕷️ <strong>Spider Bite!</strong> ${randomMember.name} was bitten in the night and is Poisoned! (-12 extra HP per day)</span>`, 
+                buttons: [{text: 'Continue', action: null}],
+                gifUrl: 'spider.gif' // Add spider.gif
+            };
         },
         () => {
             let stolen = Math.floor(Math.random() * 15) + 5;
             if (state.inventory.food >= stolen) {
                 state.inventory.food -= stolen;
-                return { text: `<br><br><span style="color: orange;">⚠️ <strong>Thief!</strong> Gollum crept into camp while you slept and stole ${stolen} portions of Lembas bread.</span>`, buttons: [{text: 'Continue', action: null}] };
+                return { 
+                    text: `<br><br><span style="color: orange;">⚠️ <strong>Thief!</strong> Gollum crept into camp while you slept and stole ${stolen} portions of Lembas bread.</span>`, 
+                    buttons: [{text: 'Continue', action: null}],
+                    gifUrl: 'gollum.gif' // Add gollum.gif
+                };
             }
             return defaultReturn;
         },
         () => {
             state.inventory.medicine += 1;
-            return { text: `<br><br><span style="color: #4a5d23;">🌿 <strong>Good Fortune:</strong> You spotted Kingsfoil growing near the path! (+1 Athelas leaf)</span>`, buttons: [{text: 'Continue', action: null}] };
+            return { 
+                text: `<br><br><span style="color: #4a5d23;">🌿 <strong>Good Fortune:</strong> You spotted Kingsfoil growing near the path! (+1 Athelas leaf)</span>`, 
+                buttons: [{text: 'Continue', action: null}],
+                gifUrl: 'kingsfoil.gif' // Add kingsfoil.gif
+            };
         },
-
-        // --- NEW: Interactive Trade Events ---
         () => {
-            let cost = Math.floor(Math.random() * 15) + 25; // 25-39 coins
+            let cost = Math.floor(Math.random() * 15) + 25; 
             return {
                 text: `<br><br><span style="color: #d4af37;">🤝 <strong>Wandering Elves:</strong> A scout offers to sell you 1 Elven Cloak for ${cost} Silver Pennies.</span>`,
                 buttons: [
@@ -218,12 +235,13 @@ function getRandomEvent() {
                         }
                     },
                     { text: "Decline Offer", action: null }
-                ]
+                ],
+                gifUrl: 'elf-trade.gif' // Add elf-trade.gif
             };
         },
         () => {
-            let cost = Math.floor(Math.random() * 10) + 10; // 10-19 coins
-            let qty = Math.floor(Math.random() * 15) + 15;  // 15-29 food
+            let cost = Math.floor(Math.random() * 10) + 10; 
+            let qty = Math.floor(Math.random() * 15) + 15;  
             return {
                 text: `<br><br><span style="color: #d4af37;">🤝 <strong>Friendly Strangers:</strong> A group of travelers offers you ${qty} portions of food for ${cost} Silver Pennies.</span>`,
                 buttons: [
@@ -241,30 +259,8 @@ function getRandomEvent() {
                         }
                     },
                     { text: "Decline Offer", action: null }
-                ]
-            };
-        },
-        () => {
-            let offer = Math.floor(Math.random() * 20) + 20; // 20-39 coins
-            let foodWanted = Math.floor(Math.random() * 15) + 15; // 15-29 food
-            return {
-                text: `<br><br><span style="color: #d4af37;">🤝 <strong>Desperate Refugee:</strong> A starving traveler begs to buy ${foodWanted} portions of your Lembas bread in exchange for ${offer} Silver Pennies.</span>`,
-                buttons: [
-                    {
-                        text: `Sell Food (+${offer} coins)`,
-                        action: () => {
-                            if (state.inventory.food >= foodWanted) {
-                                state.inventory.food -= foodWanted;
-                                state.inventory.currency += offer;
-                                updateUI();
-                                showModal("Trade Successful", `You parted with your food, but your purse is ${offer} Silver Pennies heavier.`);
-                            } else {
-                                showModal("Trade Failed", "You realize you don't even have enough food to spare.");
-                            }
-                        }
-                    },
-                    { text: "Decline Offer", action: null }
-                ]
+                ],
+                gifUrl: 'trade.gif' // Add trade.gif
             };
         }
     ];
@@ -290,7 +286,7 @@ healBtn.addEventListener('click', () => {
         showModal("Everyone is Healthy", "The Fellowship is already at full health and free of ailments.");
     } else {
         healButtons.push({text: "Cancel", action: null});
-        showModal("Use Athelas", "Who will you treat? (Restores 30 HP and cures all ailments)", healButtons);
+        showModal("Use Athelas", "Who will you treat? (Restores 30 HP and cures all ailments)", healButtons, 'kingsfoil.gif'); // Use medicine GIF here!
     }
 });
 
@@ -333,9 +329,10 @@ function closeShop() { shopModal.style.display = 'none'; }
 // --- HAZARD / BATTLE ENCOUNTER ENGINE ---
 function triggerHazardEncounter(hazardName, dailyMessage) {
     let enemyDesc = "";
-    if (hazardName === "The Pass of Caradhras") enemyDesc = "A pack of Wargs and Saruman's Orc scouts block the mountain pass!";
-    if (hazardName === "The Mines of Moria") enemyDesc = "A massive swarm of Moria Goblins block the great bridge!";
-    if (hazardName === "The Argonath") enemyDesc = "A deadly band of Uruk-hai ambush you from the woods!";
+    let hazardGif = "";
+    if (hazardName === "The Pass of Caradhras") { enemyDesc = "A pack of Wargs and Saruman's Orc scouts block the mountain pass!"; hazardGif = "caradhras.gif"; }
+    if (hazardName === "The Mines of Moria") { enemyDesc = "A massive swarm of Moria Goblins block the great bridge!"; hazardGif = "moria.gif"; }
+    if (hazardName === "The Argonath") { enemyDesc = "A deadly band of Uruk-hai ambush you from the woods!"; hazardGif = "ambush.gif"; }
 
     const message = `${dailyMessage}<br><br>**HAZARD ENCOUNTERED!**<br>${enemyDesc}<br>How will the Fellowship proceed?`;
 
@@ -343,7 +340,7 @@ function triggerHazardEncounter(hazardName, dailyMessage) {
         { text: "Charge into Battle", action: () => resolveHazard('fight', hazardName) },
         { text: "Take a Detour (3 Days)", action: () => resolveHazard('detour', hazardName) },
         { text: "Hire Mercenaries (35 Coins)", action: () => resolveHazard('pay', hazardName) }
-    ]);
+    ], hazardGif);
 }
 
 function resolveHazard(choice, hazardName) {
@@ -408,8 +405,8 @@ function resolveHazard(choice, hazardName) {
     }
 
     const ringbearer = state.party.find(m => m.isRingbearer);
-    if (!ringbearer.isAlive) { showModal("Game Over", resultMessage + "<br><br>Frodo has fallen. The Ring is lost.", [{text: "Try Again", action: () => location.reload()}]); return; }
-    if (state.ringCorruption >= 100) { showModal("Game Over", resultMessage + "<br><br>The Ring has fully corrupted Frodo.", [{text: "Try Again", action: () => location.reload()}]); return; }
+    if (!ringbearer.isAlive) { showModal("Game Over", resultMessage + "<br><br>Frodo has fallen. The Ring is lost.", [{text: "Try Again", action: () => location.reload()}], 'gameover.gif'); return; }
+    if (state.ringCorruption >= 100) { showModal("Game Over", resultMessage + "<br><br>The Ring has fully corrupted Frodo.", [{text: "Try Again", action: () => location.reload()}], 'gameover.gif'); return; }
 
     updateUI();
     showModal("Encounter Resolved", resultMessage);
@@ -439,11 +436,17 @@ travelBtn.addEventListener('click', () => {
     state.distanceTraveled += milesCovered;
     dailyMessage += `You traveled ${milesCovered} miles today. \n`;
 
-    // Only roll for a random event if we DID NOT just trigger a major landmark or hazard
-    let eventData = { text: "", buttons: [{text: 'Continue', action: null}] };
+    let eventData = { text: "", buttons: [{text: 'Continue', action: null}], gifUrl: null };
+    let currentGif = "walking.gif"; // Start with the default walking animation
+
     if (!arrivedAtLandmark) {
         eventData = getRandomEvent();
         dailyMessage += eventData.text;
+        
+        // If the random event passed back a specific GIF, overwrite the walking GIF!
+        if (eventData.gifUrl) {
+            currentGif = eventData.gifUrl;
+        }
     }
 
     const livingCount = state.party.filter(m => m.isAlive).length;
@@ -490,24 +493,22 @@ travelBtn.addEventListener('click', () => {
     });
 
     const ringbearer = state.party.find(m => m.isRingbearer);
-    if (!ringbearer.isAlive) { showModal("Game Over", "Frodo has fallen. The Ring is lost.", [{text: "Try Again", action: () => location.reload()}]); return; }
-    if (state.ringCorruption >= 100) { showModal("Game Over", "The Ring has fully corrupted Frodo.", [{text: "Try Again", action: () => location.reload()}]); return; }
+    if (!ringbearer.isAlive) { showModal("Game Over", "Frodo has fallen. The Ring is lost.", [{text: "Try Again", action: () => location.reload()}], 'gameover.gif'); return; }
+    if (state.ringCorruption >= 100) { showModal("Game Over", "The Ring has fully corrupted Frodo.", [{text: "Try Again", action: () => location.reload()}], 'gameover.gif'); return; }
 
     updateUI();
-    
-    let travelGif = "walking.gif"; 
 
     if (arrivedAtLandmark) {
         if (nextLandmark.type === 'finish') {
-            showModal("Victory!", `You have reached the fires of ${nextLandmark.name} and destroyed the One Ring!`, [{text: "Play Again", action: () => location.reload()}]);
+            showModal("Victory!", `You have reached the fires of ${nextLandmark.name} and destroyed the One Ring!`, [{text: "Play Again", action: () => location.reload()}], 'victory.gif');
         } else if (nextLandmark.type === 'hazard') {
             triggerHazardEncounter(nextLandmark.name, dailyMessage);
         } else {
-            showModal("Landmark Reached!", `${dailyMessage}<br><br>You have arrived at: ${nextLandmark.name}.`);
+            showModal("Landmark Reached!", `${dailyMessage}<br><br>You have arrived at: ${nextLandmark.name}.`, [{text: 'Continue', action: null}], 'landmark.gif');
         }
     } else {
-        // Now using the dynamic eventData.buttons instead of just a generic 'Continue'
-        showModal(`Day ${state.day}`, dailyMessage, eventData.buttons, travelGif);
+        // Send either the walking.gif or the specific random event gif!
+        showModal(`Day ${state.day}`, dailyMessage, eventData.buttons, currentGif);
     }
 });
 
@@ -520,7 +521,7 @@ restBtn.addEventListener('click', () => {
         state.day++;
         state.ringCorruption += 2; 
         updateUI();
-        showModal("Camped", "The Fellowship rested and healed 15 HP, but the Ring's corruption grows heavier.");
+        showModal("Camped", "The Fellowship rested and healed 15 HP, but the Ring's corruption grows heavier.", [{text: "Continue", action: null}], 'camp.gif'); // Add a camp.gif!
     } else {
         showModal("Cannot Rest", "You do not have enough Lembas bread to make camp safely!");
     }
