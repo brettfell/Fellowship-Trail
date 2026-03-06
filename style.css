@@ -1,0 +1,35 @@
+body {
+    background-color: #1a1a1a;
+    color: #d4af37; /* Elven Gold */
+    font-family: 'Courier New', Courier, monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+#game-screen {
+    text-align: center;
+    background: #2a2a2a;
+    padding: 40px;
+    border: 2px solid #4a5d23; /* Ranger Green */
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+}
+
+button {
+    background-color: #4a5d23;
+    color: #fff;
+    border: 1px solid #d4af37;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-family: inherit;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-top: 20px;
+}
+
+button:hover {
+    background-color: #5b732b;
+}
