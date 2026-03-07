@@ -1,4 +1,4 @@
-// The Fellowship Trail - Game Engine v1.13
+// The Fellowship Trail - Game Engine v1.14
 
 const defaultState = {
     day: 1,
