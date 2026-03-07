@@ -4,76 +4,168 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Fellowship Trail</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #d4af37;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 10px;
+            text-align: center;
+        }
+        h1, h2, h3 { color: #fff; }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #2b2b2b;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #4a5d23;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            text-align: left;
+            background: #111;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .inventory-list {
+            text-align: left;
+            background: #111;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .party-status {
+            text-align: left;
+            background: #111;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #4a5d23;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            margin: 5px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+        }
+        button:hover { background-color: #5c732b; }
+        select {
+            padding: 10px;
+            background: #111;
+            color: #d4af37;
+            border: 1px solid #4a5d23;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(0,0,0,0.8); 
+        }
+        .modal-content {
+            background-color: #2b2b2b;
+            margin: 10% auto; 
+            padding: 20px;
+            border: 2px solid #4a5d23;
+            width: 90%; 
+            max-width: 500px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px #000;
+        }
+        .modal-gif {
+            width: 100%;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #4a5d23;
+        }
+    </style>
 </head>
 <body>
-    <div id="game-screen" class="screen">
-        <header>
-            <h2>Location: <span id="current-location">Rivendell</span></h2>
-            <div class="stats">
-                <p>Day: <span id="day">1</span></p>
-                <p>Distance: <span id="distance">0</span> / <span id="total-distance">2000</span> miles</p>
-                <p>Party Health: <span id="health-status">Good</span></p>
-                <p style="color: purple;">Ring Corruption: <span id="corruption-level">0</span>%</p>
-            </div>
-        </header>
 
-        <div class="management-panel">
-            <h3>The Fellowship</h3>
-            <div id="party-list"></div>
-            
-            <h3>Supplies</h3>
-            <div class="inventory-list">
-                <p>Lembas & Forage: <span id="food-supply">300</span> portions</p>
-                <p>Athelas: <span id="medicine-supply">5</span> leaves</p>
-                <p>Pipe-Weed: <span id="pipeweed-supply">3</span> pouches</p>
-                <p>Silver Pennies: <span id="currency-supply">150</span> coins</p>
-                <hr style="border-color: #4a5d23; margin: 10px 0;">
-                <p>Elven Cloaks: <span id="cloak-supply">4</span></p>
-                <p>Arrows (Legolas): <span id="arrow-supply">30</span></p>
-                <p>Whetstones (Aragorn): <span id="whetstone-supply">3</span></p>
-                <p>Axe Handles (Gimli): <span id="axe-supply">2</span></p>
-            </div>
-        </div>
-
-        <div class="controls-panel">
-            <h3>Travel Settings</h3>
-            <p>Mode: <span id="current-travel-mode" style="font-weight: bold;">Steady</span></p>
-            <div>
-                <button onclick="changeSetting('Cautious')">Cautious</button>
-                <button onclick="changeSetting('Steady')">Steady</button>
-                <button onclick="changeSetting('Forced March')">Forced March</button>
-            </div>
-        </div>
-
-        <div class="actions">
-            <button id="trade-btn" style="background-color: #d4af37; color: #1a1a1a; width: 100%; padding: 10px; font-size: 1.1em; margin-bottom: 10px; display: none;">Visit Trading Post</button>
-            <button id="travel-btn" style="background-color: #2a623d; width: 100%; padding: 15px; font-size: 1.2em;">Travel Next Day</button>
-            <button id="hunt-btn" style="width: 100%; margin-top: 10px; background-color: #8b4513;">Hunt & Forage (Costs 1 Day)</button>
-            <button id="rest-btn" style="width: 100%; margin-top: 10px;">Camp & Heal (Consumes Food)</button>
-            <button id="heal-btn" style="width: 100%; margin-top: 10px; background-color: #5b732b;">Use Athelas (Cure Status)</button>
-            <button id="pipe-btn" style="width: 100%; margin-top: 10px; background-color: #6d597a;">Smoke Pipe-Weed (Needs Gandalf)</button>
-        </div>
+<div class="container">
+    <h1>The Fellowship Trail</h1>
+    
+    <div class="stats-grid">
+        <div><strong>Day:</strong> <span id="day">1</span></div>
+        <div><strong>Location:</strong> <span id="current-location">Rivendell</span></div>
+        <div><strong>Miles:</strong> <span id="distance">0</span> / <span id="total-distance">2000</span></div>
+        <div><strong>Pace:</strong> <span id="current-travel-mode">Steady</span></div>
+        <div><strong>Ring Corruption:</strong> <span id="corruption-level">0</span>%</div>
+        <div><strong>Overall Health:</strong> <span id="health-status">Good</span></div>
     </div>
 
-    <div id="custom-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h3 id="modal-title">Daily Report</h3>
-            <img id="modal-gif" src="" alt="Event Animation" style="width: 100%; max-width: 250px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #4a5d23; display: none;">
-            <p id="modal-message"></p>
-            <div id="modal-buttons" class="modal-buttons"></div>
-        </div>
+    <div class="inventory-list">
+        <h3 style="margin-top: 0;">Supplies & Gear</h3>
+        <p>Food: <span id="food-supply">300</span> portions</p>
+        <p>Silver Pennies: <span id="currency-supply">150</span></p>
+        <p>Athelas (Healing): <span id="medicine-supply">5</span> leaves</p>
+        <p>Longbottom Leaf: <span id="pipeweed-supply">3</span> pouches</p>
+        <p>Elven Cloaks: <span id="cloak-supply">4</span></p>
+        <p>Arrows (Legolas/Aragorn): <span id="arrow-supply">30</span></p>
+        <p>Whetstones (Aragorn): <span id="whetstone-supply">3</span></p>
+        <p>Axe Handles (Gimli): <span id="axe-supply">2</span></p>
     </div>
 
-    <div id="shop-modal" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 500px;">
-            <h3 style="color: #d4af37; border-bottom: 1px solid #4a5d23; padding-bottom: 10px;">Elven Trading Post</h3>
-            <p style="font-weight: bold;">Your Purse: <span id="shop-currency" style="color: #d4af37;">150</span> Silver Pennies</p>
-            <div id="shop-items" style="text-align: left; margin: 20px 0; max-height: 50vh; overflow-y: auto; padding-right: 10px;"></div>
-            <button onclick="closeShop()" style="width: 100%; background-color: #5b732b;">Return to Party</button>
-        </div>
+    <div class="party-status">
+        <h3 style="margin-top: 0;">The Fellowship</h3>
+        <div id="party-list"></div>
     </div>
 
-    <script src="app.js"></script>
+    <div style="background: #111; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+        <label for="travel-mode"><strong>Set Pace:</strong></label>
+        <select id="travel-mode" onchange="changeSetting(this.value)">
+            <option value="Steady">Steady (20 miles/day, balanced)</option>
+            <option value="Cautious">Cautious (10 miles/day, safer)</option>
+            <option value="Forced March">Forced March (30 miles/day, exhausting)</option>
+        </select>
+    </div>
+
+    <button id="travel-btn" style="width: 100%; font-size: 1.2em; padding: 20px;">Set Forth (Travel)</button>
+    <button id="hunt-btn" style="width: 100%; margin-top: 10px; background-color: #8b4513;">Hunt (Costs 1 Day)</button>
+    
+    <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button id="rest-btn" style="flex: 1; background-color: #2c3e50;">Make Camp</button>
+        <button id="heal-btn" style="flex: 1; background-color: #8f9779;">Use Athelas</button>
+    </div>
+    
+    <button id="pipe-btn" style="width: 100%; margin-top: 10px; background-color: #6d597a;">Smoke Pipe-Weed (Needs Gandalf)</button>
+    <button id="trade-btn" style="width: 100%; margin-top: 10px; background-color: #d4af37; color: black; display: none;">Visit Trading Post</button>
+</div>
+
+<div id="custom-modal" class="modal">
+    <div class="modal-content">
+        <h2 id="modal-title">Event</h2>
+        <img id="modal-gif" class="modal-gif" src="" alt="Event Animation" style="display: none;">
+        <p id="modal-message">Message goes here.</p>
+        <div id="modal-buttons" style="margin-top: 20px;"></div>
+    </div>
+</div>
+
+<div id="shop-modal" class="modal">
+    <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+        <h2>Trading Post</h2>
+        <p>Silver Pennies: <span id="shop-currency" style="color: #d4af37; font-weight: bold;">0</span></p>
+        <div id="shop-items" style="text-align: left; margin-top: 15px;"></div>
+        <button onclick="closeShop()" style="width: 100%; margin-top: 20px; background-color: #888;">Leave Shop</button>
+    </div>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>
