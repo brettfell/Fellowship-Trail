@@ -496,4 +496,17 @@ restBtn.addEventListener('click', () => {
         updateUI();
         showModal("Camped", "The Fellowship rested and healed 15 HP, but the Ring's corruption grows heavier.", [{text: "Continue", action: null}], 'camp.gif'); 
     } else { showModal("Cannot Rest", "You do not have enough Lembas bread to make camp safely!"); }
+// --- GAME INITIALIZATION (THE OPENING STORY) ---
+if (state.day === 1 && state.distanceTraveled === 0) {
+    showModal(
+        "The Fellowship Departs",
+        "The Council of Elrond has concluded. A Fellowship of eight has been chosen to bear the One Ring to the fires of Mount Doom. The road stretches 2,000 miles through the perilous wilds of Middle-earth.<br><br>You must manage the party's pace and rations carefully. Beware the creeping shadow of the Ring's corruption, and guard your vanguard (Aragorn, Legolas, and Gimli) well, for brutal hazards lie in wait.<br><br>Before you leave the safety of the valley, it would be wise to visit the Trading Post to provision your journey. May the stars shine upon your faces!",
+        [
+            { text: "Visit Trading Post", action: () => tradeBtn.click() },
+            { text: "Set Forth", action: null }
+        ],
+        'waterfall.gif' 
+    );
+}
+
 });
