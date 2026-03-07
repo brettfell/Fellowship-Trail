@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Fellowship Trail</title>
-    <style>
+        <style>
         body {
             background-color: #1a1a1a;
             color: #d4af37;
@@ -59,12 +59,16 @@
             font-weight: bold;
         }
         button:hover { background-color: #5c732b; }
+        
+        /* UPDATED: Fixes the dropdown box overflowing the container */
         select {
+            width: 100%;
             padding: 10px;
             background: #111;
             color: #d4af37;
             border: 1px solid #4a5d23;
             font-family: 'Courier New', Courier, monospace;
+            box-sizing: border-box;
         }
         
         /* Modal Styles */
@@ -78,18 +82,27 @@
             height: 100%; 
             background-color: rgba(0,0,0,0.8); 
         }
+        
+        /* UPDATED: Fixes the modal width bleeding and adds vertical scrolling */
         .modal-content {
             background-color: #2b2b2b;
-            margin: 10% auto; 
+            margin: 5% auto; 
             padding: 20px;
             border: 2px solid #4a5d23;
             width: 90%; 
             max-width: 500px;
             border-radius: 10px;
             box-shadow: 0 0 20px #000;
+            box-sizing: border-box; 
+            max-height: 85vh; 
+            overflow-y: auto; 
         }
+
+        /* UPDATED: Stops tall GIFs from pushing buttons off the screen */
         .modal-gif {
             width: 100%;
+            max-height: 35vh; 
+            object-fit: cover; 
             border-radius: 5px;
             margin-bottom: 15px;
             border: 1px solid #4a5d23;
