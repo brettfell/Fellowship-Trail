@@ -24,7 +24,7 @@
             
             <h3>Supplies</h3>
             <div class="inventory-list">
-                <p>Lembas Bread: <span id="food-supply">300</span> portions</p>
+                <p>Lembas & Forage: <span id="food-supply">300</span> portions</p>
                 <p>Athelas: <span id="medicine-supply">5</span> leaves</p>
                 <p>Pipe-Weed: <span id="pipeweed-supply">3</span> pouches</p>
                 <p>Silver Pennies: <span id="currency-supply">150</span> coins</p>
@@ -38,25 +38,19 @@
 
         <div class="controls-panel">
             <h3>Travel Settings</h3>
-            <p>Pace: <span id="current-pace" style="font-weight: bold;">Steady</span></p>
+            <p>Mode: <span id="current-travel-mode" style="font-weight: bold;">Steady</span></p>
             <div>
-                <button onclick="changeSetting('pace', 'Cautious')">Cautious</button>
-                <button onclick="changeSetting('pace', 'Steady')">Steady</button>
-                <button onclick="changeSetting('pace', 'Grueling')">Grueling</button>
-            </div>
-            
-            <p style="margin-top: 15px;">Rations: <span id="current-rations" style="font-weight: bold;">Normal</span></p>
-            <div>
-                <button onclick="changeSetting('rations', 'Meager')">Meager</button>
-                <button onclick="changeSetting('rations', 'Normal')">Normal</button>
-                <button onclick="changeSetting('rations', 'Filling')">Filling</button>
+                <button onclick="changeSetting('Cautious')">Cautious</button>
+                <button onclick="changeSetting('Steady')">Steady</button>
+                <button onclick="changeSetting('Forced March')">Forced March</button>
             </div>
         </div>
 
         <div class="actions">
             <button id="trade-btn" style="background-color: #d4af37; color: #1a1a1a; width: 100%; padding: 10px; font-size: 1.1em; margin-bottom: 10px; display: none;">Visit Trading Post</button>
             <button id="travel-btn" style="background-color: #2a623d; width: 100%; padding: 15px; font-size: 1.2em;">Travel Next Day</button>
-            <button id="rest-btn" style="width: 100%; margin-top: 10px;">Camp & Heal (Consumes Lembas)</button>
+            <button id="hunt-btn" style="width: 100%; margin-top: 10px; background-color: #8b4513;">Hunt & Forage (Costs 1 Day)</button>
+            <button id="rest-btn" style="width: 100%; margin-top: 10px;">Camp & Heal (Consumes Food)</button>
             <button id="heal-btn" style="width: 100%; margin-top: 10px; background-color: #5b732b;">Use Athelas (Cure Status)</button>
             <button id="pipe-btn" style="width: 100%; margin-top: 10px; background-color: #6d597a;">Smoke Pipe-Weed (Needs Gandalf)</button>
         </div>
@@ -75,7 +69,7 @@
         <div class="modal-content" style="max-width: 500px;">
             <h3 style="color: #d4af37; border-bottom: 1px solid #4a5d23; padding-bottom: 10px;">Elven Trading Post</h3>
             <p style="font-weight: bold;">Your Purse: <span id="shop-currency" style="color: #d4af37;">150</span> Silver Pennies</p>
-            <div id="shop-items" style="text-align: left; margin: 20px 0; max-height: 50vh; overflow-y: auto;"></div>
+            <div id="shop-items" style="text-align: left; margin: 20px 0; max-height: 50vh; overflow-y: auto; padding-right: 10px;"></div>
             <button onclick="closeShop()" style="width: 100%; background-color: #5b732b;">Return to Party</button>
         </div>
     </div>
