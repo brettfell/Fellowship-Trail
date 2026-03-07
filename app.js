@@ -496,6 +496,7 @@ restBtn.addEventListener('click', () => {
         updateUI();
         showModal("Camped", "The Fellowship rested and healed 15 HP, but the Ring's corruption grows heavier.", [{text: "Continue", action: null}], 'camp.gif'); 
     } else { showModal("Cannot Rest", "You do not have enough Lembas bread to make camp safely!"); }
+});
 // --- GAME INITIALIZATION (THE OPENING STORY) ---
 if (state.day === 1 && state.distanceTraveled === 0) {
     showModal(
@@ -509,4 +510,3 @@ if (state.day === 1 && state.distanceTraveled === 0) {
     );
 }
 
-});
