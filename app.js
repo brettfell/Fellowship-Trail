@@ -552,9 +552,25 @@ travelBtn.addEventListener('click', () => {
         milesCovered = Math.floor(Math.random() * 10) + 30; foodNeeded = livingCount * 3; baseHealthChange = -5; 
     }
 
-    if (nextLandmark && (state.distanceTraveled + milesCovered) >= nextLandmark.distance) {
-        milesCovered = nextLandmark.distance - state.distanceTraveled; state.currentLocation = nextLandmark.name; state.nextLandmarkIndex++; arrivedAtLandmark = true;
-    } else { state.currentLocation = "In the Wilds"; }
+        if (nextLandmark && (state.distanceTraveled + milesCovered) >= nextLandmark.distance) {
+        milesCovered = nextLandmark.distance - state.distanceTraveled; 
+        state.currentLocation = nextLandmark.name; 
+        state.nextLandmarkIndex++; 
+        arrivedAtLandmark = true;
+    } else { 
+        // Persistent Regional Map
+        let currentDist = state.distanceTraveled + milesCovered;
+        if (currentDist >= 1700) state.currentLocation = "Gondor / Ithilien";
+        else if (currentDist >= 1500) state.currentLocation = "Morgul Vale";
+        else if (currentDist >= 1250) state.currentLocation = "Wastes of the Morannon";
+        else if (currentDist >= 1000) state.currentLocation = "The Dead Marshes";
+        else if (currentDist >= 750) state.currentLocation = "Emyn Muil";
+        else if (currentDist >= 500) state.currentLocation = "Celebrant / Rohan";
+        else if (currentDist >= 400) state.currentLocation = "Dimrill Dale";
+        else if (currentDist >= 150) state.currentLocation = "Hollin";
+        else state.currentLocation = "In the Wilds";
+    }
+
 
     state.distanceTraveled += milesCovered;
     dailyMessage += `You traveled ${milesCovered} miles today. \n`;
