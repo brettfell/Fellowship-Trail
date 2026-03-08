@@ -36,11 +36,15 @@ const defaultState = {
 const landmarks = [
     { name: "The Pass of Caradhras", distance: 150, type: "hazard" },
     { name: "The Mines of Moria", distance: 400, type: "hazard" },
-    { name: "Lothlórien", distance: 800, type: "town" },
-    { name: "The Argonath", distance: 1300, type: "hazard" },
+    { name: "Lothlórien", distance: 500, type: "town" },
+    { name: "The Argonath", distance: 750, type: "hazard" },
+    { name: "The Dead Marshes", distance: 1000, type: "hazard" },
+    { name: "The Black Gate", distance: 1250, type: "hazard" },
+    { name: "Cirith Ungol", distance: 1500, type: "hazard" },
     { name: "Minas Tirith", distance: 1700, type: "town" },
     { name: "Mount Doom", distance: 2000, type: "finish" }
 ];
+
 
 const shopInventory = [
     { id: 'food', name: "Lembas Bread (20 portions)", cost: 5, qty: 20 },
