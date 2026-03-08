@@ -5,14 +5,12 @@ const defaultState = {
     distanceTraveled: 0,
     totalDistance: 2000, 
     ringCorruption: 0,      
-    travelMode: 'Steady', 
 
     inventory: {
         food: 300,      
         medicine: 5,    
         pipeweed: 3,
-        currency: 150,
-        cloaks: 4,      
+        currency: 150,     
         arrows: 15,
         whetstones: 3,
         axeHandles: 2
@@ -45,26 +43,22 @@ const landmarks = [
     { name: "Mount Doom", distance: 2000, type: "finish" }
 ];
 
-
 const shopInventory = [
     { id: 'food', name: "Lembas Bread (20 portions)", cost: 5, qty: 20 },
     { id: 'medicine', name: "Athelas (1 leaf)", cost: 10, qty: 1 },
     { id: 'pipeweed', name: "Longbottom Leaf (1 pouch)", cost: 15, qty: 1 },
-    { id: 'cloaks', name: "Elven Cloak (1 cloak)", cost: 25, qty: 1 },
-    { id: 'arrows', name: "Bundle of Arrows (5)", cost: 5, qty: 5 },
+    { id: 'arrows', name: "Bundle of Arrows (5)", cost: 10, qty: 5 },
     { id: 'whetstones', name: "Ranger's Whetstone", cost: 8, qty: 1 },
     { id: 'axeHandles', name: "Sturdy Axe Handle", cost: 12, qty: 1 }
 ];
 
 const sellableItems = [
-    { id: 'cloaks', name: "Elven Cloak", sellPrice: 12 },
     { id: 'medicine', name: "Athelas Leaf", sellPrice: 5 },
     { id: 'whetstones', name: "Whetstone", sellPrice: 4 },
     { id: 'axeHandles', name: "Axe Handle", sellPrice: 5 },
     { id: 'pipeweed', name: "Longbottom Leaf", sellPrice: 8 },
     { id: 'arrows', name: "Arrow (1)", sellPrice: 1 } 
 ];
-
 
 const safeTowns = ['Rivendell', 'Lothlórien', 'Minas Tirith'];
 
@@ -81,11 +75,6 @@ const shopModal = document.getElementById('shop-modal');
 
 updateUI();
 
-function changeSetting(value) {
-    state.travelMode = value;
-    updateUI();
-}
-
 function updateUI() {
     document.getElementById('current-location').innerText = state.currentLocation;
     document.getElementById('day').innerText = state.day;
@@ -97,12 +86,9 @@ function updateUI() {
     document.getElementById('medicine-supply').innerText = state.inventory.medicine;
     document.getElementById('pipeweed-supply').innerText = state.inventory.pipeweed;
     document.getElementById('currency-supply').innerText = state.inventory.currency;
-    document.getElementById('cloak-supply').innerText = state.inventory.cloaks;
     document.getElementById('arrow-supply').innerText = state.inventory.arrows;
     document.getElementById('whetstone-supply').innerText = state.inventory.whetstones;
     document.getElementById('axe-supply').innerText = state.inventory.axeHandles;
-
-    document.getElementById('current-travel-mode').innerText = state.travelMode;
 
     if (safeTowns.includes(state.currentLocation)) tradeBtn.style.display = 'block';
     else tradeBtn.style.display = 'none';
@@ -387,7 +373,7 @@ huntBtn.addEventListener('click', () => {
 
     state.day++;
     state.ringCorruption += 1;
-    
+
     let aragorn = state.party.find(m => m.name === 'Aragorn').isAlive;
     let legolas = state.party.find(m => m.name === 'Legolas').isAlive;
 
@@ -425,7 +411,7 @@ huntBtn.addEventListener('click', () => {
     }
 
     state.inventory.food += foodYield;
-    
+
     let huntMsg = `Legolas used ${arrowsUsed} arrows. The Rangers tracked game and gathered ${foodYield} portions of food.<br><br>`;
     if (whetstoneBroke) huntMsg += "<span style='color: orange;'>Aragorn used 1 Whetstone maintaining his blade in the brush.</span><br>";
     if (dullBlade) huntMsg += "<span style='color: red;'>Aragorn's blade is dull! Your food yield was halved.</span><br>";
@@ -434,13 +420,12 @@ huntBtn.addEventListener('click', () => {
     showModal("Hunting", huntMsg, [{text: "Continue", action: null}], 'meat-good.gif'); 
 });
 
-
 // --- SHOP UI ---
 tradeBtn.addEventListener('click', () => {
     document.getElementById('shop-currency').innerText = state.inventory.currency;
     const shopItemsEl = document.getElementById('shop-items');
     shopItemsEl.innerHTML = '<h4 style="margin: 0 0 10px 0; border-bottom: 1px solid #4a5d23;">Buy Supplies</h4>';
-    
+
     shopInventory.forEach(item => {
         let currentInv = state.inventory[item.id]; 
         shopItemsEl.innerHTML += `
@@ -452,7 +437,7 @@ tradeBtn.addEventListener('click', () => {
     });
 
     shopItemsEl.innerHTML += '<h4 style="margin: 20px 0 10px 0; border-bottom: 1px solid #4a5d23; color: #6d597a;">Sell Gear</h4>';
-    
+
     sellableItems.forEach(item => {
         let currentInv = state.inventory[item.id]; 
         shopItemsEl.innerHTML += `
@@ -585,35 +570,26 @@ function resolveHazard(choice, hazardName, allyData = null) {
     showModal("Encounter Resolved", resultMessage);
 }
 
-// --- MAIN LOOP ---
+// --- MAIN TRAVEL LOOP (UPDATED) ---
 travelBtn.addEventListener('click', () => {
     state.day++;
     let dailyMessage = "";
     let arrivedAtLandmark = false;
     let nextLandmark = landmarks[state.nextLandmarkIndex];
-    let milesCovered = 0;
     const livingCount = state.party.filter(m => m.isAlive).length;
 
-    let foodNeeded = 0;
-    let baseHealthChange = 0;
-    let travelAttriton = 0; 
+    let milesCovered = Math.floor(Math.random() * 10) + 20; // 20-29 miles
+    let foodNeeded = livingCount * 2; 
+    state.ringCorruption += 1;
 
-    if (state.travelMode === 'Cautious') { 
-        milesCovered = Math.floor(Math.random() * 10) + 10; state.ringCorruption += 2; foodNeeded = livingCount * 2; baseHealthChange = 5; 
-    } else if (state.travelMode === 'Steady') { 
-        milesCovered = Math.floor(Math.random() * 10) + 20; state.ringCorruption += 1; foodNeeded = livingCount * 2; baseHealthChange = 0;
-        travelAttriton = Math.floor(Math.random() * 3); 
-    } else if (state.travelMode === 'Forced March') { 
-        milesCovered = Math.floor(Math.random() * 10) + 30; foodNeeded = livingCount * 3; baseHealthChange = -5; 
-    }
-
-        if (nextLandmark && (state.distanceTraveled + milesCovered) >= nextLandmark.distance) {
+    // Landmark Check Logic
+    if (nextLandmark && (state.distanceTraveled + milesCovered) >= nextLandmark.distance) {
         milesCovered = nextLandmark.distance - state.distanceTraveled; 
         state.currentLocation = nextLandmark.name; 
         state.nextLandmarkIndex++; 
         arrivedAtLandmark = true;
     } else { 
-        // Persistent Regional Map
+        // Persistent Regional Map Logic
         let currentDist = state.distanceTraveled + milesCovered;
         if (currentDist >= 1700) state.currentLocation = "Gondor / Ithilien";
         else if (currentDist >= 1500) state.currentLocation = "Morgul Vale";
@@ -626,7 +602,6 @@ travelBtn.addEventListener('click', () => {
         else state.currentLocation = "In the Wilds";
     }
 
-
     state.distanceTraveled += milesCovered;
     dailyMessage += `You traveled ${milesCovered} miles today. \n`;
 
@@ -635,7 +610,7 @@ travelBtn.addEventListener('click', () => {
     if (state.party.find(m => m.name === 'Sam').isAlive) passiveFood += Math.floor(Math.random() * 4);
     if (state.party.find(m => m.name === 'Merry').isAlive) passiveFood += Math.floor(Math.random() * 4);
     if (state.party.find(m => m.name === 'Pippin').isAlive) passiveFood += Math.floor(Math.random() * 4);
-    
+
     if (passiveFood > 0) {
         state.inventory.food += passiveFood;
         dailyMessage += `The Hobbits scavenged +${passiveFood} food while walking. \n`;
@@ -650,24 +625,29 @@ travelBtn.addEventListener('click', () => {
         if (eventData.gifUrl) currentGif = eventData.gifUrl;
     }
 
-    if (state.inventory.food >= foodNeeded) { state.inventory.food -= foodNeeded; } 
-    else { state.inventory.food = 0; baseHealthChange -= 15; dailyMessage += "<br><span style='color: red;'>You are out of food! The Fellowship is starving.</span> \n"; }
+    // Starvation Check
+    let isStarving = false;
+    if (state.inventory.food >= foodNeeded) { 
+        state.inventory.food -= foodNeeded; 
+    } else { 
+        state.inventory.food = 0; 
+        isStarving = true;
+        dailyMessage += "<br><span style='color: red;'>You are out of food! The Fellowship is starving.</span> \n"; 
+    }
 
-    // Elven Cloak Protection Logic
-    const cloakPriority = ["Frodo", "Sam", "Pippin", "Merry", "Aragorn", "Legolas", "Gandalf", "Gimli"];
-    let livingMembersList = state.party.filter(m => m.isAlive);
-    livingMembersList.sort((a, b) => cloakPriority.indexOf(a.name) - cloakPriority.indexOf(b.name));
-    let cloaksLeft = state.inventory.cloaks;
+    // --- INDIVIDUAL HEALTH UPDATE LOOP ---
+    state.party.forEach(stateMember => {
+        if (!stateMember.isAlive) return;
 
-    livingMembersList.forEach(member => {
-        let personalHealthChange = baseHealthChange - travelAttriton; 
-        let stateMember = state.party.find(m => m.name === member.name);
-        
+        // Individual RNG roll for daily travel wear (0 to 2 damage)
+        let individualWear = Math.floor(Math.random() * 3);
+        let personalHealthChange = -individualWear;
+
         if (stateMember.status !== 'Healthy') {
             stateMember.statusDays--;
             if (stateMember.statusDays <= 0) {
                 stateMember.status = 'Healthy';
-                dailyMessage += `<br><span style="color: #4a5d23;">${stateMember.name} has naturally recovered from their affliction!</span>\n`;
+                dailyMessage += `<br><span style="color: #4a5d23;">${stateMember.name} has recovered!</span>\n`;
             } else {
                 if (stateMember.status === 'Sick') personalHealthChange -= 5;
                 if (stateMember.status === 'Injured') personalHealthChange -= 8;
@@ -675,19 +655,14 @@ travelBtn.addEventListener('click', () => {
             }
         }
 
-        if (state.travelMode === 'Forced March') {
-            if (cloaksLeft > 0) {
-                cloaksLeft--; 
-                dailyMessage += `<span style="color: #4a5d23; font-size: 0.8em;">(Cloak protected ${stateMember.name} from march penalty)</span>\n`;
-            } else { 
-                personalHealthChange -= 10; 
-                dailyMessage += `<span style="color: orange; font-size: 0.8em;">(No cloak: ${stateMember.name} suffered from the brutal pace)</span>\n`;
-            }
+        // Apply starvation penalty if applicable
+        if (isStarving) {
+            personalHealthChange -= 15;
         }
 
         stateMember.health += personalHealthChange;
-        if (stateMember.health > 100) stateMember.health = 100;
-        
+        stateMember.health = Math.min(100, Math.max(0, stateMember.health));
+
         if (stateMember.health <= 0 && stateMember.isAlive) { 
             stateMember.health = 0; 
             stateMember.isAlive = false; 
@@ -698,7 +673,7 @@ travelBtn.addEventListener('click', () => {
 
     const ringbearer = state.party.find(m => m.isRingbearer);
     if (!ringbearer.isAlive) { showModal("Game Over", dailyMessage + "<br><br>Frodo has fallen. The Ring is lost.", [{text: "Try Again", action: () => location.reload()}], 'frodo-fallen.gif'); return; }
-    
+
     if (state.ringCorruption >= 100) { showModal("Game Over", dailyMessage + "<br><br>The Ring has fully corrupted Frodo. The Nazgûl have claimed their prize.", [{text: "Try Again", action: () => location.reload()}], 'nazgul.gif'); return; }
 
     updateUI();
@@ -731,7 +706,7 @@ restBtn.addEventListener('click', () => {
 if (state.day === 1 && state.distanceTraveled === 0) {
     showModal(
         "The Fellowship Departs",
-        "The Council of Elrond has concluded. You must bear the One Ring to Mount Doom.<br><br>Your supplies will rot, the Ring will test you, and the wilderness will bleed your strength. Manage your Travel Mode, forage carefully, and protect the vanguard.<br><br>May the stars shine upon your faces!",
+        "The Council of Elrond has concluded. You must bear the One Ring to Mount Doom.<br><br>Your supplies will rot, the Ring will test you, and the wilderness will bleed your strength. Forage carefully, and protect the vanguard.<br><br>May the stars shine upon your faces!",
         [ { text: "Visit Trading Post", action: () => tradeBtn.click() }, { text: "Set Forth", action: null } ],
         'waterfall.gif' 
     );
