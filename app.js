@@ -391,30 +391,60 @@ pipeBtn.addEventListener('click', () => {
 });
 
 huntBtn.addEventListener('click', () => {
+    if (state.inventory.arrows < 2) {
+        showModal("Cannot Hunt", "Legolas does not have enough arrows to hunt! You must keep moving or buy supplies.");
+        return;
+    }
+
     state.day++;
     state.ringCorruption += 1;
-    let huntMsg = "You spent the day hunting and gathering.<br><br>";
-    let foodFound = 0;
     
     let aragorn = state.party.find(m => m.name === 'Aragorn').isAlive;
     let legolas = state.party.find(m => m.name === 'Legolas').isAlive;
 
-    if (aragorn || legolas) {
-        foodFound = Math.floor(Math.random() * 25) + 20; 
-        huntMsg += `The Rangers tracked game through the brush. You gained ${foodFound} portions of food!<br>`;
-        if (Math.random() > 0.6 && state.inventory.arrows > 0) {
-            state.inventory.arrows--;
-            huntMsg += "<span style='color: #888;'>(-1 Arrow used)</span><br>";
-        }
-    } else {
-        foodFound = Math.floor(Math.random() * 10) + 5; 
-        huntMsg += `Without your expert hunters, the party clumsily scavenged ${foodFound} portions of meager food.<br>`;
+    if (!legolas && !aragorn) {
+        let meagerFood = Math.floor(Math.random() * 10) + 5;
+        state.inventory.food += meagerFood;
+        updateUI();
+        showModal("Hunting", `Without your expert hunters, the party clumsily scavenged ${meagerFood} portions of meager food.`, [{text: "Continue", action: null}], 'meat-good.gif');
+        return;
     }
 
-    state.inventory.food += foodFound;
+    // Arrow consumption (Legolas)
+    let arrowsUsed = Math.floor(Math.random() * 3) + 2; 
+    state.inventory.arrows = Math.max(0, state.inventory.arrows - arrowsUsed);
+
+    // Whetstone consumption (Aragorn - 33% chance)
+    let whetstoneBroke = false;
+    let dullBlade = false;
+
+    if (aragorn) {
+        if (state.inventory.whetstones > 0) {
+            if (Math.random() < 0.33) {
+                state.inventory.whetstones -= 1;
+                whetstoneBroke = true;
+            }
+        } else {
+            dullBlade = true; 
+        }
+    }
+
+    // Calculate Food Yield
+    let foodYield = Math.floor(Math.random() * 15) + 15; 
+    if (dullBlade) {
+        foodYield = Math.floor(foodYield / 2); 
+    }
+
+    state.inventory.food += foodYield;
+    
+    let huntMsg = `Legolas used ${arrowsUsed} arrows. The Rangers tracked game and gathered ${foodYield} portions of food.<br><br>`;
+    if (whetstoneBroke) huntMsg += "<span style='color: orange;'>Aragorn used 1 Whetstone maintaining his blade in the brush.</span><br>";
+    if (dullBlade) huntMsg += "<span style='color: red;'>Aragorn's blade is dull! Your food yield was halved.</span><br>";
+
     updateUI();
     showModal("Hunting", huntMsg, [{text: "Continue", action: null}], 'meat-good.gif'); 
 });
+
 
 // --- SHOP UI ---
 tradeBtn.addEventListener('click', () => {
