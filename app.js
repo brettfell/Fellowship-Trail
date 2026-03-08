@@ -13,7 +13,7 @@ const defaultState = {
         pipeweed: 3,
         currency: 150,
         cloaks: 4,      
-        arrows: 30,
+        arrows: 15,
         whetstones: 3,
         axeHandles: 2
     },
