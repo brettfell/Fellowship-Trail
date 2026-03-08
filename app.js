@@ -269,24 +269,60 @@ function getRandomEvent() {
             state.inventory[foundItem] += 1;
             return { text: `<br><br><span style="color: #4a5d23;">🏕️ <strong>Abandoned Camp:</strong> You found the remains of a Ranger camp. Searching the ashes, you recovered a ${foundName}!</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'camp.gif' };
         },
-        () => { // Desperate Ranger Trade
+        () => {
+function getRandomEvent() {
+    const defaultReturn = { text: "", buttons: [{text: 'Continue', action: null}], gifUrl: null };
+    if (Math.random() > 0.55) return defaultReturn; 
+    
+    const livingMembers = state.party.filter(m => m.isAlive);
+    if (livingMembers.length === 0) return defaultReturn;
+    
+    // --- THE WRAITH ESCALATION ---
+    if (state.ringCorruption >= 20 && Math.random() < 0.3) {
+        return {
+            text: `<br><br><span style="color: cyan;">👻 <strong>THE NAZGÛL APPROACH:</strong> The air grows freezing cold. The Wraiths have found you!</span>`,
+            buttons: [
+                { text: "Wear the Ring (+15% Corruption)", action: () => { 
+                    state.ringCorruption += 15; updateUI(); 
+                    showModal("Escaped", "Frodo put on the Ring! You escaped, but the Eye sees you.", [{text:"Continue", action:null}], "nazgul.gif"); 
+                }},
+                { text: "Hide (5 Days, -80 Food, -25 HP)", action: () => { 
+                    state.day += 5; 
+                    state.inventory.food = Math.max(0, state.inventory.food - 80); 
+                    state.ringCorruption = Math.max(0, state.ringCorruption - 5);
+                    state.party.forEach(m => { if(m.isAlive) m.health -= 25; });
+                    updateUI(); 
+                    showModal("Hidden", "You hid for 5 agonizing days. The Fellowship starved and took heavy damage from the terror, but the Ring cooled.", [{text:"Continue", action:null}], "nazgul.gif"); 
+                }}
+            ],
+            gifUrl: 'nazgul.gif'
+        };
+    }
+
+    const randomMember = livingMembers[Math.floor(Math.random() * livingMembers.length)];
+    const randomMemberGif = `${randomMember.name.toLowerCase()}-status.gif`; 
+
+    const events = [
+        // ... (Keep your sick/injured/Gollum/Athelas events the exact same!) ...
+
+        () => { // Desperate Ranger Trade (NERFED)
             if (state.inventory.medicine <= 0) return defaultReturn;
-            let offer = Math.floor(Math.random() * 20) + 30; 
             return {
-                text: `<br><br><span style="color: #d4af37;">🤝 <strong>Desperate Ranger:</strong> A severely wounded traveler begs you for an Athelas leaf. He offers ${offer} Silver Pennies for it.</span>`,
+                text: `<br><br><span style="color: #d4af37;">🤝 <strong>Desperate Ranger:</strong> A severely wounded traveler begs you for an Athelas leaf.</span>`,
                 buttons: [
-                    { text: `Trade 1 Athelas for ${offer} Coins`, action: () => { 
-                        if (state.inventory.medicine >= 1) { 
-                            state.inventory.medicine -= 1; state.inventory.currency += offer; updateUI(); 
-                            showModal("Traded", `You handed over the medicine. He paid you and limped away.`); 
-                        } 
+                    { text: `Trade for 12 Coins`, action: () => { 
+                        if (state.inventory.medicine >= 1) { state.inventory.medicine -= 1; state.inventory.currency += 12; updateUI(); showModal("Traded", `You handed over the medicine for 12 Silver Pennies.`); } 
+                    }},
+                    { text: `Trade for 5 Arrows & 1 Whetstone`, action: () => { 
+                        if (state.inventory.medicine >= 1) { state.inventory.medicine -= 1; state.inventory.arrows += 5; state.inventory.whetstones += 1; updateUI(); showModal("Traded", `You traded for 5 arrows and a whetstone.`); } 
                     }},
                     { text: "Keep Your Medicine", action: null }
                 ],
                 gifUrl: 'ranger-trade.gif' 
             };
         },
-        () => { // Figwit Elven Scout Trade
+
+// Figwit Elven Scout Trade
             let selling = Math.random() > 0.5;
             if (selling) {
                 return {
