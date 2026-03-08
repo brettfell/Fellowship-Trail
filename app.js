@@ -47,7 +47,7 @@ const shopInventory = [
     { id: 'medicine', name: "Athelas (1 leaf)", cost: 10, qty: 1 },
     { id: 'pipeweed', name: "Longbottom Leaf (1 pouch)", cost: 15, qty: 1 },
     { id: 'cloaks', name: "Elven Cloak (1 cloak)", cost: 25, qty: 1 },
-    { id: 'arrows', name: "Bundle of Arrows (10)", cost: 5, qty: 10 },
+    { id: 'arrows', name: "Bundle of Arrows (5)", cost: 5, qty: 5 },
     { id: 'whetstones', name: "Ranger's Whetstone", cost: 8, qty: 1 },
     { id: 'axeHandles', name: "Sturdy Axe Handle", cost: 12, qty: 1 }
 ];
