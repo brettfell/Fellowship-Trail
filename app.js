@@ -60,8 +60,11 @@ const sellableItems = [
     { id: 'cloaks', name: "Elven Cloak", sellPrice: 12 },
     { id: 'medicine', name: "Athelas Leaf", sellPrice: 5 },
     { id: 'whetstones', name: "Whetstone", sellPrice: 4 },
-    { id: 'axeHandles', name: "Axe Handle", sellPrice: 5 }
+    { id: 'axeHandles', name: "Axe Handle", sellPrice: 5 },
+    { id: 'pipeweed', name: "Longbottom Leaf", sellPrice: 8 },
+    { id: 'arrows', name: "Arrow (1)", sellPrice: 1 } 
 ];
+
 
 const safeTowns = ['Rivendell', 'Lothlórien', 'Minas Tirith'];
 
