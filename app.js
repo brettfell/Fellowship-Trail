@@ -201,85 +201,10 @@ function calculateScore() {
 function getRandomEvent() {
     const defaultReturn = { text: "", buttons: [{text: 'Continue', action: null}], gifUrl: null };
     if (Math.random() > 0.55) return defaultReturn; 
-    
+
     const livingMembers = state.party.filter(m => m.isAlive);
     if (livingMembers.length === 0) return defaultReturn;
-    const randomMember = livingMembers[Math.floor(Math.random() * livingMembers.length)];
-    const randomMemberGif = `${randomMember.name.toLowerCase()}-status.gif`; 
 
-    const events = [
-        () => {
-            if (randomMember.status !== 'Healthy') return defaultReturn; 
-            randomMember.status = 'Sick';
-            randomMember.statusDays = Math.floor(Math.random() * 3) + 3; 
-            return { text: `<br><br><span style="color: orange;">⚠️ <strong>Bad Water:</strong> ${randomMember.name} drank from a stagnant pool and is Sick! (-5 HP per day)</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: randomMemberGif };
-        },
-        () => {
-            if (randomMember.status !== 'Healthy') return defaultReturn;
-            randomMember.status = 'Injured';
-            randomMember.statusDays = Math.floor(Math.random() * 3) + 3;
-            return { text: `<br><br><span style="color: orange;">⚠️ <strong>Rough Terrain:</strong> ${randomMember.name} took a nasty fall and is Injured! (-8 HP per day)</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: randomMemberGif };
-        },
-        () => {
-            if (randomMember.status !== 'Healthy') return defaultReturn;
-            randomMember.status = 'Poisoned';
-            randomMember.statusDays = Math.floor(Math.random() * 3) + 3;
-            return { text: `<br><br><span style="color: red;">🕷️ <strong>Spider Bite!</strong> ${randomMember.name} was bitten in the night and is Poisoned! (-12 HP per day)</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'spider.gif' };
-        },
-        () => { // The Gollum Catch (Updated 50/50 Logic)
-            if (state.inventory.food <= 0) {
-                return { text: `<br><br><span style="color: #4a5d23;">👀 <strong>A Shadow in the Dark:</strong> Gollum crept into your camp to steal food, but found your pantry completely empty. He slinked away in disgust.</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'gollum-pouting.gif' };
-            }
-            
-            let stolen = Math.floor(Math.random() * 15) + 5;
-            let gimliAlive = state.party.find(m => m.name === 'Gimli').isAlive;
-
-            if (gimliAlive) {
-                if (Math.random() > 0.5) { // 50% Catch
-                    return { text: `<br><br><span style="color: #4a5d23;">👀 <strong>Gimli on Guard:</strong> Gollum crept into camp to steal food, but Gimli's vigilant eye caught him in the act. Gollum slinked away empty-handed and pouting.</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'gollum-pouting.gif' };
-                } else { // 50% Sneak
-                    state.inventory.food = Math.max(0, state.inventory.food - stolen);
-                    return { text: `<br><br><span style="color: orange;">⚠️ <strong>Thief!</strong> Gollum managed to sneak past a dozing Gimli and stole ${stolen} portions of food!</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'gollum.gif' };
-                }
-            } else { // Gimli Dead
-                state.inventory.food = Math.max(0, state.inventory.food - stolen);
-                return { text: `<br><br><span style="color: red;">⚠️ <strong>Thief!</strong> With Gimli gone, the camp was unguarded. Gollum crept in and stole ${stolen} portions of food!</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'gollum.gif' };
-            }
-        },
-        () => { // Half-chance Athelas
-            state.inventory.medicine += 1;
-            return { text: `<br><br><span style="color: #4a5d23;">🌿 <strong>Good Fortune:</strong> You spotted Kingsfoil growing near the path! (+1 Athelas leaf)</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'kingsfoil.gif' };
-        },
-        () => { // Wild Pipe-weed Event
-            state.inventory.pipeweed += 1;
-            return { text: `<br><br><span style="color: #6d597a;">💨 <strong>Rare Find:</strong> You discovered a wild patch of sweet-smelling herbs. (+1 Pipe-weed Pouch)</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'pipeweed.gif' };
-        },
-        () => { // Spoiled Meat Hazard
-            if (state.inventory.food < 40) return defaultReturn;
-            let spoiled = Math.floor(state.inventory.food * 0.2); 
-            state.inventory.food -= spoiled;
-            return { text: `<br><br><span style="color: red;">🪰 <strong>Rot and Ruin:</strong> The damp weather caused ${spoiled} portions of your food supply to spoil!</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'meat-bad.gif' };
-        },
-        () => { // Lifeline: Troll Cache
-            let coins = Math.floor(Math.random() * 15) + 10;
-            state.inventory.currency += coins;
-            return { text: `<br><br><span style="color: #d4af37;">💰 <strong>Forgotten Hoard:</strong> You stumbled upon an old, abandoned Troll-hole. Hidden in the muck was a lockbox with ${coins} Silver Pennies!</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'walking.gif' };
-        },
-        () => { // Abandoned Camp Loot
-            const items = ['arrows', 'whetstones', 'axeHandles'];
-            const foundItem = items[Math.floor(Math.random() * items.length)];
-            const foundName = foundItem === 'arrows' ? 'Bundle of Arrows' : foundItem === 'whetstones' ? 'Whetstone' : 'Axe Handle';
-            state.inventory[foundItem] += 1;
-            return { text: `<br><br><span style="color: #4a5d23;">🏕️ <strong>Abandoned Camp:</strong> You found the remains of a Ranger camp. Searching the ashes, you recovered a ${foundName}!</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'camp.gif' };
-        },
-        () => {
-function getRandomEvent() {
-    const defaultReturn = { text: "", buttons: [{text: 'Continue', action: null}], gifUrl: null };
-    if (Math.random() > 0.55) return defaultReturn; 
-    
-    const livingMembers = state.party.filter(m => m.isAlive);
-    if (livingMembers.length === 0) return defaultReturn;
-    
     // --- THE WRAITH ESCALATION ---
     if (state.ringCorruption >= 20 && Math.random() < 0.3) {
         return {
@@ -306,8 +231,70 @@ function getRandomEvent() {
     const randomMemberGif = `${randomMember.name.toLowerCase()}-status.gif`; 
 
     const events = [
-        // ... (Keep your sick/injured/Gollum/Athelas events the exact same!) ...
+        () => {
+            if (randomMember.status !== 'Healthy') return defaultReturn; 
+            randomMember.status = 'Sick';
+            randomMember.statusDays = Math.floor(Math.random() * 3) + 3; 
+            return { text: `<br><br><span style="color: orange;">⚠️ <strong>Bad Water:</strong> ${randomMember.name} drank from a stagnant pool and is Sick! (-5 HP per day)</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: randomMemberGif };
+        },
+        () => {
+            if (randomMember.status !== 'Healthy') return defaultReturn;
+            randomMember.status = 'Injured';
+            randomMember.statusDays = Math.floor(Math.random() * 3) + 3;
+            return { text: `<br><br><span style="color: orange;">⚠️ <strong>Rough Terrain:</strong> ${randomMember.name} took a nasty fall and is Injured! (-8 HP per day)</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: randomMemberGif };
+        },
+        () => {
+            if (randomMember.status !== 'Healthy') return defaultReturn;
+            randomMember.status = 'Poisoned';
+            randomMember.statusDays = Math.floor(Math.random() * 3) + 3;
+            return { text: `<br><br><span style="color: red;">🕷️ <strong>Spider Bite!</strong> ${randomMember.name} was bitten in the night and is Poisoned! (-12 HP per day)</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'spider.gif' };
+        },
+        () => { // The Gollum Catch
+            if (state.inventory.food <= 0) {
+                return { text: `<br><br><span style="color: #4a5d23;">👀 <strong>A Shadow in the Dark:</strong> Gollum crept into your camp to steal food, but found your pantry completely empty. He slinked away in disgust.</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'gollum-pouting.gif' };
+            }
 
+            let stolen = Math.floor(Math.random() * 15) + 5;
+            let gimliAlive = state.party.find(m => m.name === 'Gimli').isAlive;
+
+            if (gimliAlive) {
+                if (Math.random() > 0.5) { 
+                    return { text: `<br><br><span style="color: #4a5d23;">👀 <strong>Gimli on Guard:</strong> Gollum crept into camp to steal food, but Gimli's vigilant eye caught him in the act. Gollum slinked away empty-handed and pouting.</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'gollum-pouting.gif' };
+                } else { 
+                    state.inventory.food = Math.max(0, state.inventory.food - stolen);
+                    return { text: `<br><br><span style="color: orange;">⚠️ <strong>Thief!</strong> Gollum managed to sneak past a dozing Gimli and stole ${stolen} portions of food!</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'gollum.gif' };
+                }
+            } else { 
+                state.inventory.food = Math.max(0, state.inventory.food - stolen);
+                return { text: `<br><br><span style="color: red;">⚠️ <strong>Thief!</strong> With Gimli gone, the camp was unguarded. Gollum crept in and stole ${stolen} portions of food!</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'gollum.gif' };
+            }
+        },
+        () => { // Half-chance Athelas
+            state.inventory.medicine += 1;
+            return { text: `<br><br><span style="color: #4a5d23;">🌿 <strong>Good Fortune:</strong> You spotted Kingsfoil growing near the path! (+1 Athelas leaf)</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'kingsfoil.gif' };
+        },
+        () => { // Wild Pipe-weed Event
+            state.inventory.pipeweed += 1;
+            return { text: `<br><br><span style="color: #6d597a;">💨 <strong>Rare Find:</strong> You discovered a wild patch of sweet-smelling herbs. (+1 Pipe-weed Pouch)</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'pipeweed.gif' };
+        },
+        () => { // Spoiled Meat Hazard
+            if (state.inventory.food < 40) return defaultReturn;
+            let spoiled = Math.floor(state.inventory.food * 0.2); 
+            state.inventory.food -= spoiled;
+            return { text: `<br><br><span style="color: red;">🪰 <strong>Rot and Ruin:</strong> The damp weather caused ${spoiled} portions of your food supply to spoil!</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'meat-bad.gif' };
+        },
+        () => { // Troll Cache
+            let coins = Math.floor(Math.random() * 15) + 10;
+            state.inventory.currency += coins;
+            return { text: `<br><br><span style="color: #d4af37;">💰 <strong>Forgotten Hoard:</strong> You stumbled upon an old, abandoned Troll-hole. Hidden in the muck was a lockbox with ${coins} Silver Pennies!</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'walking.gif' };
+        },
+        () => { // Abandoned Camp Loot
+            const items = ['arrows', 'whetstones', 'axeHandles'];
+            const foundItem = items[Math.floor(Math.random() * items.length)];
+            const foundName = foundItem === 'arrows' ? 'Bundle of Arrows' : foundItem === 'whetstones' ? 'Whetstone' : 'Axe Handle';
+            state.inventory[foundItem] += 1;
+            return { text: `<br><br><span style="color: #4a5d23;">🏕️ <strong>Abandoned Camp:</strong> You found the remains of a Ranger camp. Searching the ashes, you recovered a ${foundName}!</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'camp.gif' };
+        },
         () => { // Desperate Ranger Trade (NERFED)
             if (state.inventory.medicine <= 0) return defaultReturn;
             return {
@@ -324,8 +311,7 @@ function getRandomEvent() {
                 gifUrl: 'ranger-trade.gif' 
             };
         },
-
-// Figwit Elven Scout Trade
+        () => { // Figwit Elven Scout Trade
             let selling = Math.random() > 0.5;
             if (selling) {
                 return {
