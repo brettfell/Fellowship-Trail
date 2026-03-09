@@ -390,14 +390,14 @@ huntBtn.addEventListener('click', () => {
     state.inventory.arrows = Math.max(0, state.inventory.arrows - arrowsUsed);
 
     // Whetstone consumption (Aragorn - 33% chance)
-    let whetstoneBroke = false;
+    let whetstoneUsed = false;
     let dullBlade = false;
 
     if (aragorn) {
         if (state.inventory.whetstones > 0) {
             if (Math.random() < 0.33) {
                 state.inventory.whetstones -= 1;
-                whetstoneBroke = true;
+                whetstoneUsed = true;
             }
         } else {
             dullBlade = true; 
@@ -406,19 +406,30 @@ huntBtn.addEventListener('click', () => {
 
     // Calculate Food Yield
     let foodYield = Math.floor(Math.random() * 15) + 15; 
-    if (dullBlade) {
-        foodYield = Math.floor(foodYield / 2); 
+    
+    // Apply the Whetstone Multipliers
+    if (whetstoneUsed) {
+        foodYield = Math.floor(foodYield * 1.5); // The 1.5x Sharpened Bonus!
+    } else if (dullBlade) {
+        foodYield = Math.floor(foodYield / 2); // The 50% dull penalty
     }
 
     state.inventory.food += foodYield;
 
-    let huntMsg = `Legolas used ${arrowsUsed} arrows. The Rangers tracked game and gathered ${foodYield} portions of food.<br><br>`;
-    if (whetstoneBroke) huntMsg += "<span style='color: orange;'>Aragorn used 1 Whetstone maintaining his blade in the brush.</span><br>";
-    if (dullBlade) huntMsg += "<span style='color: red;'>Aragorn's blade is dull! Your food yield was halved.</span><br>";
+    // Dynamic UI Messaging
+    let huntMsg = `Legolas used ${arrowsUsed} arrows. `;
+    if (whetstoneUsed) {
+        huntMsg += `<br><br><span style='color: #d4af37;'><strong>Critical Hunt!</strong> Aragorn used a Whetstone to hone his blade to a razor edge, taking down massive game. The Rangers gathered a feast of ${foodYield} portions!</span>`;
+    } else if (dullBlade) {
+        huntMsg += `The Rangers tracked game and gathered ${foodYield} portions of food.<br><br><span style='color: red;'>Aragorn's blade is dull! Your food yield was halved.</span>`;
+    } else {
+        huntMsg += `The Rangers tracked game and gathered ${foodYield} portions of food.`;
+    }
 
     updateUI();
     showModal("Hunting", huntMsg, [{text: "Continue", action: null}], 'meat-good.gif'); 
 });
+
 
 // --- SHOP UI ---
 tradeBtn.addEventListener('click', () => {
