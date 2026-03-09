@@ -383,23 +383,15 @@ huntBtn.addEventListener('click', () => {
     if (!legolas && !aragorn) {
         let meagerFood = Math.floor(Math.random() * 10) + 5;
         state.inventory.food += meagerFood;
-        
+
         let meagerMsg = `Without your expert hunters, the party clumsily scavenged ${meagerFood} portions of meager food.`;
         if (legolasOut) meagerMsg = `Legolas is out of arrows and stayed behind to search for shafts. ` + meagerMsg;
-        
+
         updateUI();
         showModal("Hunting", meagerMsg, [{text: "Continue", action: null}], 'meat-good.gif');
         return;
     }
 
-    // Arrow consumption (Only if Legolas is participating)
-    let arrowsUsed = 0;
-    if (legolas) {
-        arrowsUsed = Math.floor(Math.random() * 3) + 2; 
-        state.inventory.arrows = Math.max(0, state.inventory.arrows - arrowsUsed);
-    }
-
-   
     // Arrow consumption (Only if Legolas is participating)
     let arrowsUsed = 0;
     if (legolas) {
