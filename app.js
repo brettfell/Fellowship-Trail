@@ -272,7 +272,7 @@ function getRandomEvent() {
         () => { // Troll Cache
             let coins = Math.floor(Math.random() * 15) + 10;
             state.inventory.currency += coins;
-            return { text: `<br><br><span style="color: #d4af37;">💰 <strong>Forgotten Hoard:</strong> You stumbled upon an old, abandoned Troll-hole. Hidden in the muck was a lockbox with ${coins} Silver Pennies!</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'walking.gif' };
+            return { text: `<br><br><span style="color: #d4af37;">💰 <strong>Forgotten Hoard:</strong> You stumbled upon an old, abandoned Troll-hole. Hidden in the muck was a lockbox with ${coins} Silver Pennies!</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'trade.gif' };
         },
         () => { // Abandoned Camp Loot
             const items = ['arrows', 'whetstones', 'axeHandles'];
@@ -309,7 +309,7 @@ function getRandomEvent() {
                         }},
                         { text: "Decline", action: null }
                     ],
-                    gifUrl: 'trade.gif'
+                    gifUrl: 'figwit.gif'
                 };
             } else {
                 return {
