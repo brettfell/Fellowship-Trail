@@ -366,30 +366,40 @@ pipeBtn.addEventListener('click', () => {
 });
 
 huntBtn.addEventListener('click', () => {
-    if (state.inventory.arrows < 2) {
-        showModal("Cannot Hunt", "Legolas does not have enough arrows to hunt! You must keep moving or buy supplies.");
-        return;
-    }
-
     state.day++;
     state.ringCorruption += 1;
 
     let aragorn = state.party.find(m => m.name === 'Aragorn').isAlive;
     let legolas = state.party.find(m => m.name === 'Legolas').isAlive;
+    let legolasOut = false;
 
+    // NEW LOGIC: Legolas stays behind if out of arrows
+    if (legolas && state.inventory.arrows < 2) {
+        legolas = false; // Exclude him from the hunt math
+        legolasOut = true; 
+    }
+
+    // Trigger meager hunt if neither can hunt
     if (!legolas && !aragorn) {
         let meagerFood = Math.floor(Math.random() * 10) + 5;
         state.inventory.food += meagerFood;
+        
+        let meagerMsg = `Without your expert hunters, the party clumsily scavenged ${meagerFood} portions of meager food.`;
+        if (legolasOut) meagerMsg = `Legolas is out of arrows and stayed behind to search for shafts. ` + meagerMsg;
+        
         updateUI();
-        showModal("Hunting", `Without your expert hunters, the party clumsily scavenged ${meagerFood} portions of meager food.`, [{text: "Continue", action: null}], 'meat-good.gif');
+        showModal("Hunting", meagerMsg, [{text: "Continue", action: null}], 'meat-good.gif');
         return;
     }
 
-    // Arrow consumption (Legolas)
-    let arrowsUsed = Math.floor(Math.random() * 3) + 2; 
-    state.inventory.arrows = Math.max(0, state.inventory.arrows - arrowsUsed);
+    // Arrow consumption (Only if Legolas is participating)
+    let arrowsUsed = 0;
+    if (legolas) {
+        arrowsUsed = Math.floor(Math.random() * 3) + 2; 
+        state.inventory.arrows = Math.max(0, state.inventory.arrows - arrowsUsed);
+    }
 
-    // Whetstone consumption (Aragorn - 33% chance)
+    // Whetstone consumption (Only if Aragorn is participating)
     let whetstoneUsed = false;
     let dullBlade = false;
 
@@ -417,18 +427,25 @@ huntBtn.addEventListener('click', () => {
     state.inventory.food += foodYield;
 
     // Dynamic UI Messaging
-    let huntMsg = `Legolas used ${arrowsUsed} arrows. `;
+    let huntMsg = "";
+    if (legolasOut) {
+        huntMsg += "Legolas stayed behind to salvage arrow shafts. ";
+    } else if (legolas) {
+        huntMsg += `Legolas used ${arrowsUsed} arrows. `;
+    }
+
     if (whetstoneUsed) {
-        huntMsg += `<br><br><span style='color: #d4af37;'><strong>Critical Hunt!</strong> Aragorn used a Whetstone to hone his blade to a razor edge, taking down massive game. The Rangers gathered a feast of ${foodYield} portions!</span>`;
+        huntMsg += `<br><br><span style='color: #d4af37;'><strong>Critical Hunt!</strong> Aragorn used a Whetstone to hone his blade to a razor edge, taking down massive game. You gathered a feast of ${foodYield} portions!</span>`;
     } else if (dullBlade) {
-        huntMsg += `The Rangers tracked game and gathered ${foodYield} portions of food.<br><br><span style='color: red;'>Aragorn's blade is dull! Your food yield was halved.</span>`;
+        huntMsg += `Aragorn tracked game and gathered ${foodYield} portions of food.<br><br><span style='color: red;'>Aragorn's blade is dull! Your food yield was halved.</span>`;
     } else {
-        huntMsg += `The Rangers tracked game and gathered ${foodYield} portions of food.`;
+        huntMsg += `The hunters tracked game and gathered ${foodYield} portions of food.`;
     }
 
     updateUI();
     showModal("Hunting", huntMsg, [{text: "Continue", action: null}], 'meat-good.gif'); 
 });
+
 
 
 // --- SHOP UI ---
@@ -705,13 +722,28 @@ travelBtn.addEventListener('click', () => {
 restBtn.addEventListener('click', () => {
     const livingCount = state.party.filter(m => m.isAlive).length;
     let foodNeeded = livingCount * 2;
+    
     if (state.inventory.food >= foodNeeded) {
         state.inventory.food -= foodNeeded;
         state.party.forEach(m => { if (m.isAlive) { m.health = Math.min(100, m.health + 15); } });
-        state.day++; state.ringCorruption += 2; 
+        state.day++; 
+        state.ringCorruption += 2; 
+        
+        let campMsg = "The Fellowship rested and healed 15 HP, but the Ring's corruption grows heavier.";
+        
+        // NEW LOGIC: Legolas fletches arrows while resting
+        let legolas = state.party.find(m => m.name === 'Legolas').isAlive;
+        if (legolas) {
+            let craftedArrows = Math.floor(Math.random() * 3) + 2; // Crafts 2 to 4 arrows
+            state.inventory.arrows += craftedArrows;
+            campMsg += `<br><br><span style="color: #4a5d23;">Legolas spent the evening fletching new arrows from fallen branches. (+${craftedArrows} Arrows)</span>`;
+        }
+        
         updateUI();
-        showModal("Camped", "The Fellowship rested and healed 15 HP, but the Ring's corruption grows heavier.", [{text: "Continue", action: null}], 'camp.gif'); 
-    } else { showModal("Cannot Rest", "You do not have enough food to make camp safely!"); }
+        showModal("Camped", campMsg, [{text: "Continue", action: null}], 'camp.gif'); 
+    } else { 
+        showModal("Cannot Rest", "You do not have enough food to make camp safely!"); 
+    }
 });
 
 if (state.day === 1 && state.distanceTraveled === 0) {
