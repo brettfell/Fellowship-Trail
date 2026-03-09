@@ -419,7 +419,7 @@ huntBtn.addEventListener('click', () => {
     
     // Apply the Whetstone Multipliers
     if (whetstoneUsed) {
-        foodYield = Math.floor(foodYield * 1.5); // The 1.5x Sharpened Bonus!
+        foodYield = Math.floor(foodYield * 2); // The 2x Sharpened Bonus!
     } else if (dullBlade) {
         foodYield = Math.floor(foodYield / 2); // The 50% dull penalty
     }
