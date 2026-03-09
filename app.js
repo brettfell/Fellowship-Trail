@@ -288,7 +288,7 @@ function getRandomEvent() {
             return { text: `<br><br><span style="color: #4a5d23;">🏕️ <strong>Abandoned Camp:</strong> You found the remains of a Ranger camp. Searching the ashes, you recovered a ${foundName}!</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'camp.gif' };
         },
         () => { // Desperate Ranger Trade (UPDATED WITH TOKEN LOGIC)
-            if (Math.random() > 0.50 || state.inventory.medicine <= 0) return defaultReturn; 
+            if (state.inventory.medicine <= 0) return defaultReturn; 
 
             // Base trade buttons
             let rangerButtons = [
