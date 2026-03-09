@@ -507,11 +507,15 @@ function closeShop() { shopModal.style.display = 'none'; }
 
 // --- HAZARDS ---
 function triggerHazardEncounter(hazardName, dailyMessage) {
-    let enemyDesc = "";
-    let hazardGif = "";
+    let enemyDesc = "Fierce enemies block your path!";
+    let hazardGif = "ambush.gif"; // Fallback GIF
+
     if (hazardName === "The Pass of Caradhras") { enemyDesc = "A pack of Wargs and Saruman's Orc scouts block the mountain pass!"; hazardGif = "caradhras.gif"; }
-    if (hazardName === "The Mines of Moria") { enemyDesc = "A massive swarm of Moria Goblins block the great bridge!"; hazardGif = "moria.gif"; }
-    if (hazardName === "The Argonath") { enemyDesc = "A deadly band of Uruk-hai ambush you from the woods!"; hazardGif = "ambush.gif"; }
+    else if (hazardName === "The Mines of Moria") { enemyDesc = "A massive swarm of Moria Goblins block the great bridge!"; hazardGif = "moria.gif"; }
+    else if (hazardName === "The Argonath") { enemyDesc = "A deadly band of Uruk-hai ambush you from the woods!"; hazardGif = "ambush.gif"; }
+    else if (hazardName === "The Dead Marshes") { enemyDesc = "Ghoulish lights flicker as Orc patrols hunt you through the bog!"; hazardGif = "deadmarshes.gif"; }
+    else if (hazardName === "The Black Gate") { enemyDesc = "Easterling forces and Mordor Orcs guard the ash-plains!"; hazardGif = "blackgate.gif"; }
+    else if (hazardName === "Cirith Ungol") { enemyDesc = "Shelob's brood and vicious Uruks swarm the narrow stairs!"; hazardGif = "shelob.gif"; }
 
     const allies = [
         { text: "Call the Great Eagles (25 Food)", type: "eagles", cost: 25, resource: "food" },
@@ -521,7 +525,7 @@ function triggerHazardEncounter(hazardName, dailyMessage) {
     ];
     let availableAlly = allies[Math.floor(Math.random() * allies.length)];
 
-    const message = `${dailyMessage}<br><br>**HAZARD ENCOUNTERED!**<br>${enemyDesc}<br>How will the Fellowship proceed?`;
+    const message = `${dailyMessage}<br><br>**HAZARD ENCOUNTERED!**<br>${enemyDesc}<br><br>How will the Fellowship proceed?`;
 
     showModal(`Arrived at ${hazardName}`, message, [
         { text: "Charge into Battle", action: () => resolveHazard('fight', hazardName) },
