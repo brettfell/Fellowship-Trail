@@ -399,30 +399,31 @@ huntBtn.addEventListener('click', () => {
         state.inventory.arrows = Math.max(0, state.inventory.arrows - arrowsUsed);
     }
 
+   
+    // Arrow consumption (Only if Legolas is participating)
+    let arrowsUsed = 0;
+    if (legolas) {
+        arrowsUsed = Math.floor(Math.random() * 3) + 2; 
+        state.inventory.arrows = Math.max(0, state.inventory.arrows - arrowsUsed);
+    }
+
     // Whetstone consumption (Only if Aragorn is participating)
     let whetstoneUsed = false;
-    let dullBlade = false;
 
-    if (aragorn) {
-        if (state.inventory.whetstones > 0) {
-            if (Math.random() < 0.33) {
-                state.inventory.whetstones -= 1;
-                whetstoneUsed = true;
-            }
-        } else {
-            dullBlade = true; 
+    if (aragorn && state.inventory.whetstones > 0) {
+        if (Math.random() < 0.33) {
+            state.inventory.whetstones -= 1;
+            whetstoneUsed = true;
         }
     }
 
     // Calculate Food Yield
     let foodYield = Math.floor(Math.random() * 15) + 15; 
-    
-    // Apply the Whetstone Multipliers
+
+    // Apply the Whetstone Multiplier
     if (whetstoneUsed) {
         foodYield = Math.floor(foodYield * 2); // The 2x Sharpened Bonus!
-    } else if (dullBlade) {
-        foodYield = Math.floor(foodYield / 2); // The 50% dull penalty
-    }
+    } 
 
     state.inventory.food += foodYield;
 
@@ -436,8 +437,6 @@ huntBtn.addEventListener('click', () => {
 
     if (whetstoneUsed) {
         huntMsg += `<br><br><span style='color: #d4af37;'><strong>Critical Hunt!</strong> Aragorn used a Whetstone to hone his blade to a razor edge, taking down massive game. You gathered a feast of ${foodYield} portions!</span>`;
-    } else if (dullBlade) {
-        huntMsg += `Aragorn tracked game and gathered ${foodYield} portions of food.<br><br><span style='color: red;'>Aragorn's blade is dull! Your food yield was halved.</span>`;
     } else {
         huntMsg += `The hunters tracked game and gathered ${foodYield} portions of food.`;
     }
@@ -445,7 +444,6 @@ huntBtn.addEventListener('click', () => {
     updateUI();
     showModal("Hunting", huntMsg, [{text: "Continue", action: null}], 'meat-good.gif'); 
 });
-
 
 
 // --- SHOP UI ---
