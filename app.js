@@ -605,18 +605,18 @@ travelBtn.addEventListener('click', () => {
     state.distanceTraveled += milesCovered;
     dailyMessage += `You traveled ${milesCovered} miles today. \n`;
 
-    // RNG Hobbit Foraging
+     // RNG Hobbit Foraging (Floor raised to 1)
     let passiveFood = 0;
-    if (state.party.find(m => m.name === 'Sam').isAlive) passiveFood += Math.floor(Math.random() * 4);
-    if (state.party.find(m => m.name === 'Merry').isAlive) passiveFood += Math.floor(Math.random() * 4);
-    if (state.party.find(m => m.name === 'Pippin').isAlive) passiveFood += Math.floor(Math.random() * 4);
+    if (state.party.find(m => m.name === 'Sam').isAlive) passiveFood += Math.floor(Math.random() * 3) + 1;
+    if (state.party.find(m => m.name === 'Merry').isAlive) passiveFood += Math.floor(Math.random() * 3) + 1;
+    if (state.party.find(m => m.name === 'Pippin').isAlive) passiveFood += Math.floor(Math.random() * 3) + 1;
 
     if (passiveFood > 0) {
         state.inventory.food += passiveFood;
         dailyMessage += `The Hobbits scavenged +${passiveFood} food while walking. \n`;
     }
 
-    let eventData = { text: "", buttons: [{text: 'Continue', action: null}], gifUrl: null };
+   let eventData = { text: "", buttons: [{text: 'Continue', action: null}], gifUrl: null };
     let currentGif = "walking.gif"; 
 
     if (!arrivedAtLandmark) {
