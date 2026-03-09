@@ -321,7 +321,7 @@ function getRandomEvent() {
                         }},
                         { text: "Decline", action: null }
                     ],
-                    gifUrl: 'trade.gif'
+                    gifUrl: 'figwit.gif'
                 };
             }
         }
