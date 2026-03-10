@@ -396,13 +396,18 @@ huntBtn.addEventListener('click', () => {
     state.day++;
     state.ringCorruption += 1;
 
-    let aragorn = state.party.find(m => m.name === 'Aragorn').isAlive;
+    let aragornObj = state.party.find(m => m.name === 'Aragorn');
+    let aragorn = aragornObj.isAlive;
     let legolas = state.party.find(m => m.name === 'Legolas').isAlive;
     let legolasOut = false;
+    let fletchedArrows = 0;
 
+    // NEW LOGIC: Legolas stays behind and fletches 1-2 arrows
     if (legolas && state.inventory.arrows < 2) {
         legolas = false; 
         legolasOut = true; 
+        fletchedArrows = Math.floor(Math.random() * 2) + 1; // Crafts 1 to 2
+        state.inventory.arrows += fletchedArrows;
     }
 
     if (!legolas && !aragorn) {
@@ -410,7 +415,7 @@ huntBtn.addEventListener('click', () => {
         state.inventory.food += meagerFood;
 
         let meagerMsg = `Without your expert hunters, the party clumsily scavenged ${meagerFood} portions of meager food.`;
-        if (legolasOut) meagerMsg = `Legolas is out of arrows and stayed behind to search for shafts. ` + meagerMsg;
+        if (legolasOut) meagerMsg = `Legolas stayed behind to fletch (+${fletchedArrows} Arrows). ` + meagerMsg;
 
         updateUI();
         showModal("Hunting", meagerMsg, [{text: "Continue", action: null}], 'meat-good.gif');
@@ -424,15 +429,16 @@ huntBtn.addEventListener('click', () => {
     }
 
     let whetstoneUsed = false;
-
+    // BUMPED: Whetstone trigger chance increased from 33% to 45%
     if (aragorn && state.inventory.whetstones > 0) {
-        if (Math.random() < 0.33) {
+        if (Math.random() < 0.45) {
             state.inventory.whetstones -= 1;
             whetstoneUsed = true;
         }
     }
 
-    let foodYield = Math.floor(Math.random() * 15) + 15; 
+    // NERFED YIELD: 15-25 if Legolas is out, 15-29 if he is hunting
+    let foodYield = legolas ? Math.floor(Math.random() * 15) + 15 : Math.floor(Math.random() * 11) + 15; 
 
     if (whetstoneUsed) {
         foodYield = Math.floor(foodYield * 2); 
@@ -440,22 +446,41 @@ huntBtn.addEventListener('click', () => {
 
     state.inventory.food += foodYield;
 
+    // NEW LOGIC: Aragorn takes 5-10 damage if hunting melee without Legolas
+    let aragornDmg = 0;
+    let aragornFallenMsg = "";
+    if (aragorn && !legolas) { 
+        aragornDmg = Math.floor(Math.random() * 6) + 5;
+        aragornObj.health = Math.max(0, aragornObj.health - aragornDmg);
+        
+        if (aragornObj.health === 0) {
+            aragornObj.isAlive = false;
+            aragornFallenMsg = `<br><br><span style='color: red;'><strong>Aragorn succumbed to his wounds during the hunt and has fallen...</strong></span>`;
+        }
+    }
+
+    // UI Messaging
     let huntMsg = "";
     if (legolasOut) {
-        huntMsg += "Legolas stayed behind to salvage arrow shafts. ";
+        huntMsg += `Legolas stayed behind to fletch (+${fletchedArrows} Arrows). `;
     } else if (legolas) {
         huntMsg += `Legolas used ${arrowsUsed} arrows. `;
     }
 
     if (whetstoneUsed) {
-        huntMsg += `<br><br><span style='color: #d4af37;'><strong>Critical Hunt!</strong> Aragorn used a Whetstone to hone his blade to a razor edge, taking down massive game. You gathered a feast of ${foodYield} portions!</span>`;
+        huntMsg += `<br><br><span style='color: #d4af37;'><strong>Critical Hunt!</strong> Aragorn honed his blade to a razor edge, taking down massive game. You gathered a feast of ${foodYield} portions!</span>`;
     } else {
-        huntMsg += `The hunters tracked game and gathered ${foodYield} portions of food.`;
+        huntMsg += `The hunters gathered ${foodYield} portions of food.`;
+    }
+
+    if (aragornDmg > 0) {
+        huntMsg += `<br><br><span style='color: orange;'>Hunting wild game with only a blade is dangerous work. Aragorn took ${aragornDmg} damage during the scuffle!</span>${aragornFallenMsg}`;
     }
 
     updateUI();
     showModal("Hunting", huntMsg, [{text: "Continue", action: null}], 'meat-good.gif'); 
 });
+
 
 
 // --- SHOP UI ---
