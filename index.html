@@ -4,96 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Fellowship Trail</title>
-        <style>
-        body {
-            background-color: #1a1a1a;
-            color: #d4af37;
-            font-family: 'Courier New', Courier, monospace;
-            margin: 0;
-            padding: 10px;
-            text-align: center;
-        }
-        h1, h2, h3 { color: #fff; }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            background: #2b2b2b;
-            padding: 20px;
-            border-radius: 10px;
-            border: 2px solid #4a5d23;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            text-align: left;
-            background: #111;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .inventory-list {
-            text-align: left;
-            background: #111;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .party-status {
-            text-align: left;
-            background: #111;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        button {
-            background-color: #4a5d23;
-            color: white;
-            border: none;
-            padding: 15px 20px;
-            margin: 5px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
-        }
-        button:hover { background-color: #5c732b; }
+    
+    <link rel="stylesheet" href="style.css">
 
-        .modal {
-            display: none; 
-            position: fixed; 
-            z-index: 1000; 
-            left: 0;
-            top: 0;
-            width: 100%; 
-            height: 100%; 
-            background-color: rgba(0,0,0,0.8); 
-        }
-
-        .modal-content {
-            background-color: #2b2b2b;
-            margin: 5% auto; 
-            padding: 20px;
-            border: 2px solid #4a5d23;
-            width: 90%; 
-            max-width: 500px;
-            border-radius: 10px;
-            box-shadow: 0 0 20px #000;
-            box-sizing: border-box; 
-            max-height: 85vh; 
-            overflow-y: auto; 
-        }
-
-        .modal-gif {
-            width: 100%;
-            max-height: 35vh; 
-            object-fit: cover; 
-            border-radius: 5px;
-            margin-bottom: 15px;
-            border: 1px solid #4a5d23;
-        }
-    </style>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4a5d23">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Fellowship">
+    <link rel="apple-touch-icon" href="icon.png">
 </head>
 <body>
 
@@ -155,5 +74,15 @@
 </div>
 
 <script src="app.js"></script>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker Registered!'))
+                .catch(err => console.error('Service Worker Registration Failed:', err));
+        });
+    }
+</script>
 </body>
 </html>
