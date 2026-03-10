@@ -1,4 +1,5 @@
-// The Fellowship Trail - Game Engine v1.21
+// The Fellowship Trail - Game Engine v1.21 (Restored Master Build)
+
 const defaultState = {
     day: 1,
     distanceTraveled: 0,
@@ -13,7 +14,7 @@ const defaultState = {
         arrows: 15,
         whetstones: 3,
         axeHandles: 2,
-        woodenTokens: 0 
+        woodenTokens: 0 // Hidden value for the Ranger's Favor
     },
 
     party: [
@@ -161,6 +162,28 @@ function showModal(title, message, buttons = [{text: 'Continue', action: null}],
     modal.style.display = 'block';
 }
 
+function calculateScore() {
+    let score = 5000; 
+    let breakdown = "<br><strong>Base Victory: 5000 pts</strong><br>";
+
+    if (state.party.find(m => m.name === 'Sam').isAlive) { score += 2000; breakdown += "Samwise survived: +2000 pts<br>"; }
+
+    ['Merry', 'Pippin'].forEach(name => {
+        if (state.party.find(m => m.name === name).isAlive) { score += 1000; breakdown += `${name} survived: +1000 pts<br>`; }
+    });
+
+    ['Aragorn', 'Legolas', 'Gimli', 'Gandalf'].forEach(name => {
+        if (state.party.find(m => m.name === name).isAlive) { score += 500; breakdown += `${name} survived: +500 pts<br>`; }
+    });
+
+    let supplyBonus = (state.inventory.food * 2) + (state.inventory.currency * 2);
+    score += supplyBonus;
+    breakdown += `Remaining Supplies: +${supplyBonus} pts<br>`;
+
+    breakdown += `<br><span style="color: #d4af37; font-size: 1.2em;"><strong>FINAL SCORE: ${score}</strong></span>`;
+    return breakdown;
+}
+
 // --- MASTER EVENT ENGINE ---
 function getRandomEvent() {
     const defaultReturn = { text: "", buttons: [{text: 'Continue', action: null}], gifUrl: null };
@@ -263,8 +286,9 @@ function getRandomEvent() {
             state.inventory[foundItem] += 1;
             return { text: `<br><br><span style="color: #4a5d23;">🏕️ <strong>Abandoned Camp:</strong> You found the remains of a Ranger camp. Searching the ashes, you recovered a ${foundName}!</span>`, buttons: [{text: 'Continue', action: null}], gifUrl: 'camp.gif' };
         },
-        () => { // Desperate Ranger Trade (TOKEN SYSTEM)
+        () => { // Desperate Ranger Trade (TOKEN SYSTEM UN-MUTED FOR TESTING)
             if (state.inventory.medicine <= 0) return defaultReturn; 
+            
             let rangerButtons = [
                 { text: `Trade for 12 Coins`, action: () => { 
                     if (state.inventory.medicine >= 1) { state.inventory.medicine -= 1; state.inventory.currency += 12; updateUI(); showModal("Traded", `You handed over the medicine for 12 Silver Pennies.`); } 
@@ -275,7 +299,10 @@ function getRandomEvent() {
                 { text: "Keep Your Medicine", action: null }
             ];
 
+            // Check if there are future hazards ahead
             let hasFutureHazard = landmarks.some(l => l.type === 'hazard' && l.distance > state.distanceTraveled);
+            
+            // If they don't have a token yet and there's a hazard coming, offer the charity option
             if (state.inventory.woodenTokens === 0 && hasFutureHazard) {
                 rangerButtons.unshift({
                     text: "Give Leaf Freely", action: () => {
@@ -283,7 +310,7 @@ function getRandomEvent() {
                             state.inventory.medicine -= 1;
                             state.inventory.woodenTokens += 1;
                             updateUI();
-                            showModal("A Selfless Act", "The Ranger takes the leaf with tears in his eyes.\n\n\"Your generosity knows no bounds... the woods have a way of repaying one for charity.\"\n\nHe presses a small carved Wooden Token into your hand before disappearing into the brush.", [{text: "Continue", action: null}], 'ranger-trade.gif');
+                            showModal("A Selfless Act", "The Ranger takes the leaf with tears in his eyes.<br><br>\"Your generosity knows no bounds... the woods have a way of repaying one for charity.\"<br><br>He presses a small carved Wooden Token into your hand before disappearing into the brush.", [{text: "Continue", action: null}], 'ranger-trade.gif');
                         }
                     }
                 });
@@ -295,33 +322,74 @@ function getRandomEvent() {
                 gifUrl: 'ranger-trade.gif' 
             };
         },
-        () => { // Figwit Trade
+        () => { // Figwit Elven Scout Trade
             let selling = Math.random() > 0.5;
-            let figButtons = selling ? [
-                { text: `Buy Bread (10 Coins)`, action: () => { 
-                    if(state.inventory.currency >= 10) { state.inventory.currency -= 10; state.inventory.food += 20; updateUI(); showModal("Traded", "You purchased the Lembas bread."); } 
-                    else { showModal("Not Enough Coins", "You cannot afford the bread."); } 
-                }},
-                { text: "Decline", action: null }
-            ] : [
-                { text: `Sell Food (Gain 15 Coins)`, action: () => { 
-                    if(state.inventory.food >= 20) { state.inventory.food -= 20; state.inventory.currency += 15; updateUI(); showModal("Traded", "You sold the food."); } 
-                    else { showModal("Not Enough Food", "You do not have enough food to spare."); } 
-                }},
-                { text: "Decline", action: null }
-            ];
-
-            return {
-                text: `<br><br><span style="color: #4a5d23;">🧝 <strong>Elven Scout:</strong> A scout crosses your path offering a trade of supplies.</span>`,
-                buttons: figButtons,
-                gifUrl: 'figwit.gif'
-            };
+            if (selling) {
+                return {
+                    text: `<br><br><span style="color: #4a5d23;">🧝 <strong>Elven Scout:</strong> A scout crosses your path. He offers to sell you 20 portions of Lembas bread for 10 Silver Pennies.</span>`,
+                    buttons: [
+                        { text: `Buy Bread (10 Coins)`, action: () => { 
+                            if(state.inventory.currency >= 10) { state.inventory.currency -= 10; state.inventory.food += 20; updateUI(); showModal("Traded", "You purchased the Lembas bread."); } 
+                            else { showModal("Not Enough Coins", "You cannot afford the bread."); } 
+                        }},
+                        { text: "Decline", action: null }
+                    ],
+                    gifUrl: 'figwit.gif'
+                };
+            } else {
+                return {
+                    text: `<br><br><span style="color: #4a5d23;">🧝 <strong>Elven Scout:</strong> A hungry Elven scout crosses your path. He offers to buy 20 portions of food from you for 15 Silver Pennies.</span>`,
+                    buttons: [
+                        { text: `Sell Food (Gain 15 Coins)`, action: () => { 
+                            if(state.inventory.food >= 20) { state.inventory.food -= 20; state.inventory.currency += 15; updateUI(); showModal("Traded", "You sold the food."); } 
+                            else { showModal("Not Enough Food", "You do not have enough food to spare."); } 
+                        }},
+                        { text: "Decline", action: null }
+                    ],
+                    gifUrl: 'figwit.gif'
+                };
+            }
         }
     ];
     return events[Math.floor(Math.random() * events.length)]();
 }
 
-// --- HUNTING LOOP ---
+healBtn.addEventListener('click', () => {
+    if (state.inventory.medicine <= 0) { showModal("No Medicine", "You do not have any Athelas leaves!"); return; }
+    let healButtons = [];
+    state.party.forEach(m => {
+        if (m.isAlive && (m.health < 100 || m.status !== 'Healthy')) {
+            healButtons.push({ text: m.name, action: () => applyAthelas(m.name) });
+        }
+    });
+    if (healButtons.length === 0) { showModal("Everyone is Healthy", "The Fellowship is already at full health and free of ailments."); } 
+    else { healButtons.push({text: "Cancel", action: null}); showModal("Use Athelas", "Who will you treat? (Restores 30 HP and cures all ailments)", healButtons, 'kingsfoil.gif'); }
+});
+
+function applyAthelas(memberName) {
+    state.inventory.medicine--;
+    let member = state.party.find(m => m.name === memberName);
+    member.health = Math.min(100, member.health + 30);
+    member.status = 'Healthy';
+    member.statusDays = 0; 
+    updateUI();
+    showModal("Treated", `${memberName} was treated with Athelas. They recovered 30 HP and are fully cured.`);
+}
+
+pipeBtn.addEventListener('click', () => {
+    let gandalf = state.party.find(m => m.name === 'Gandalf');
+    if (!gandalf.isAlive) {
+        showModal("No Comfort", "With Gandalf gone, the remaining Fellowship finds no joy or solace in the pipe-weed. The Ring's corruption continues to grow.", [{text: "Continue", action: null}], 'gandalf-fallen.gif');
+        return;
+    }
+    if (state.inventory.pipeweed <= 0) { showModal("Out of Pipe-Weed", "You have no Longbottom Leaf left!"); return; }
+
+    state.inventory.pipeweed--;
+    state.ringCorruption = Math.max(0, state.ringCorruption - 15);
+    updateUI();
+    showModal("A Moment of Peace", "Gandalf blows a series of intricate smoke rings. The party relaxes, and the heavy burden of the Ring feels lighter today.<br><br><span style='color: #d4af37;'>(-15% Ring Corruption)</span>", [{text: "Continue", action: null}], 'pipeweed.gif');
+});
+
 huntBtn.addEventListener('click', () => {
     state.day++;
     state.ringCorruption += 1;
@@ -332,18 +400,21 @@ huntBtn.addEventListener('click', () => {
     let legolasOut = false;
     let fletchedArrows = 0;
 
+    // NEW LOGIC: Legolas stays behind and fletches 1-2 arrows
     if (legolas && state.inventory.arrows < 2) {
         legolas = false; 
         legolasOut = true; 
-        fletchedArrows = Math.floor(Math.random() * 2) + 1; 
+        fletchedArrows = Math.floor(Math.random() * 2) + 1; // Crafts 1 to 2
         state.inventory.arrows += fletchedArrows;
     }
 
     if (!legolas && !aragorn) {
         let meagerFood = Math.floor(Math.random() * 10) + 5;
         state.inventory.food += meagerFood;
-        let meagerMsg = `Without hunters, the party scavenged ${meagerFood} portions of meager food.`;
-        if (legolasOut) meagerMsg = `Legolas fletched (+${fletchedArrows} Arrows). ` + meagerMsg;
+
+        let meagerMsg = `Without your expert hunters, the party clumsily scavenged ${meagerFood} portions of meager food.`;
+        if (legolasOut) meagerMsg = `Legolas stayed behind to fletch (+${fletchedArrows} Arrows). ` + meagerMsg;
+
         updateUI();
         showModal("Hunting", meagerMsg, [{text: "Continue", action: null}], 'meat-good.gif');
         return;
@@ -356,46 +427,130 @@ huntBtn.addEventListener('click', () => {
     }
 
     let whetstoneUsed = false;
+    // BUMPED: Whetstone trigger chance increased to 45%
     if (aragorn && state.inventory.whetstones > 0) {
-        if (Math.random() < 0.45) { // 45% proc chance
+        if (Math.random() < 0.45) {
             state.inventory.whetstones -= 1;
             whetstoneUsed = true;
         }
     }
 
+    // NERFED YIELD: 15-25 if Legolas is out, 15-29 if he is hunting
     let foodYield = legolas ? Math.floor(Math.random() * 15) + 15 : Math.floor(Math.random() * 11) + 15; 
-    if (whetstoneUsed) foodYield *= 2; 
+
+    if (whetstoneUsed) {
+        foodYield = Math.floor(foodYield * 2); 
+    } 
+
     state.inventory.food += foodYield;
 
+    // NEW LOGIC: Aragorn takes 5-10 damage if hunting melee without Legolas
     let aragornDmg = 0;
     let aragornFallenMsg = "";
     if (aragorn && !legolas) { 
         aragornDmg = Math.floor(Math.random() * 6) + 5;
         aragornObj.health = Math.max(0, aragornObj.health - aragornDmg);
-        if (aragornObj.health === 0) { aragornObj.isAlive = false; aragornFallenMsg = `<br><br><span style='color: red;'>**Aragorn has fallen during the melee hunt!**</span>`; }
+        
+        if (aragornObj.health === 0) {
+            aragornObj.isAlive = false;
+            aragornFallenMsg = `<br><br><span style='color: red;'><strong>Aragorn succumbed to his wounds during the hunt and has fallen...</strong></span>`;
+        }
     }
 
-    let huntMsg = legolasOut ? `Legolas stayed back to fletch (+${fletchedArrows} Arrows). ` : legolas ? `Legolas used ${arrowsUsed} arrows. ` : "";
-    huntMsg += whetstoneUsed ? `<br><br><span style='color: #d4af37;'><strong>Critical Hunt!</strong> Aragorn's razor edge yielded ${foodYield} portions!</span>` : `The hunters gathered ${foodYield} portions.`;
-    if (aragornDmg > 0) huntMsg += `<br><br><span style='color: orange;'>Hunting wild game with only a blade cost Aragorn ${aragornDmg} HP!</span>${aragornFallenMsg}`;
+    // UI Messaging
+    let huntMsg = "";
+    if (legolasOut) {
+        huntMsg += `Legolas stayed behind to fletch (+${fletchedArrows} Arrows). `;
+    } else if (legolas) {
+        huntMsg += `Legolas used ${arrowsUsed} arrows. `;
+    }
+
+    if (whetstoneUsed) {
+        huntMsg += `<br><br><span style='color: #d4af37;'><strong>Critical Hunt!</strong> Aragorn honed his blade to a razor edge, taking down massive game. You gathered a feast of ${foodYield} portions!</span>`;
+    } else {
+        huntMsg += `The hunters gathered ${foodYield} portions of food.`;
+    }
+
+    if (aragornDmg > 0) {
+        huntMsg += `<br><br><span style='color: orange;'>Hunting wild game with only a blade is dangerous work. Aragorn took ${aragornDmg} damage during the scuffle!</span>${aragornFallenMsg}`;
+    }
 
     updateUI();
     showModal("Hunting", huntMsg, [{text: "Continue", action: null}], 'meat-good.gif'); 
 });
+
+// --- SHOP UI ---
+tradeBtn.addEventListener('click', () => {
+    document.getElementById('shop-currency').innerText = state.inventory.currency;
+    const shopItemsEl = document.getElementById('shop-items');
+    shopItemsEl.innerHTML = '<h4 style="margin: 0 0 10px 0; border-bottom: 1px solid #4a5d23;">Buy Supplies</h4>';
+
+    shopInventory.forEach(item => {
+        let currentInv = state.inventory[item.id]; 
+        shopItemsEl.innerHTML += `
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #333; padding: 10px 0;">
+                <span>${item.name} <br><small style="color: #888;">${item.cost} Coins</small></span>
+                <button onclick="buyItem('${item.id}', ${item.cost}, ${item.qty})" style="padding: 5px 10px; margin: 0; flex-shrink: 0;">Buy (Have: ${currentInv})</button>
+            </div>
+        `;
+    });
+
+    shopItemsEl.innerHTML += '<h4 style="margin: 20px 0 10px 0; border-bottom: 1px solid #4a5d23; color: #6d597a;">Sell Gear</h4>';
+
+    sellableItems.forEach(item => {
+        let currentInv = state.inventory[item.id]; 
+        shopItemsEl.innerHTML += `
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #333; padding: 10px 0;">
+                <span>${item.name} <br><small style="color: #888;">Sell for ${item.sellPrice} Coins</small></span>
+                <button onclick="sellItem('${item.id}', ${item.sellPrice})" style="padding: 5px 10px; margin: 0; flex-shrink: 0; background-color: #6d597a;">Sell (Have: ${currentInv})</button>
+            </div>
+        `;
+    });
+
+    shopModal.style.display = 'block';
+});
+
+function buyItem(itemId, cost, qty) {
+    if (state.inventory.currency >= cost) { 
+        state.inventory.currency -= cost; 
+        state.inventory[itemId] += qty; 
+        document.getElementById('shop-modal').style.display = 'none'; 
+        tradeBtn.click(); 
+        updateUI(); 
+    } else { 
+        closeShop(); showModal("Not Enough Coins", "You do not have enough Silver Pennies."); 
+    }
+}
+
+function sellItem(itemId, price) {
+    if (state.inventory[itemId] > 0) {
+        state.inventory[itemId]--;
+        state.inventory.currency += price;
+        document.getElementById('shop-modal').style.display = 'none'; 
+        tradeBtn.click(); 
+        updateUI();
+    } else {
+        closeShop(); showModal("Cannot Sell", "You do not have any of that item to sell!");
+    }
+}
+
+function closeShop() { shopModal.style.display = 'none'; }
 
 // --- HAZARDS ---
 function triggerHazardEncounter(hazardName, dailyMessage) {
     let enemyDesc = "Fierce enemies block your path!";
     let hazardGif = "ambush.gif"; 
 
-    if (hazardName === "The Pass of Caradhras") { enemyDesc = "A pack of Wargs and scouts block the pass!"; hazardGif = "caradhras.gif"; }
-    else if (hazardName === "The Mines of Moria") { enemyDesc = "A swarm of Goblins block the bridge!"; hazardGif = "moria.gif"; }
-    else if (hazardName === "The Argonath") { enemyDesc = "Uruk-hai ambush you from the woods!"; hazardGif = "ambush.gif"; }
-    else if (hazardName === "The Dead Marshes") { enemyDesc = "Ghoulish lights flicker in the bog!"; hazardGif = "deadmarshes.gif"; }
-    else if (hazardName === "The Black Gate") { enemyDesc = "Easterling forces guard the ash-plains!"; hazardGif = "blackgate.gif"; }
-    else if (hazardName === "Cirith Ungol") { enemyDesc = "Shelob's brood swarms the stairs!"; hazardGif = "shelob.gif"; }
+    if (hazardName === "The Pass of Caradhras") { enemyDesc = "A pack of Wargs and Saruman's Orc scouts block the mountain pass!"; hazardGif = "caradhras.gif"; }
+    else if (hazardName === "The Mines of Moria") { enemyDesc = "A massive swarm of Moria Goblins block the great bridge!"; hazardGif = "moria.gif"; }
+    else if (hazardName === "The Argonath") { enemyDesc = "A deadly band of Uruk-hai ambush you from the woods!"; hazardGif = "ambush.gif"; }
+    else if (hazardName === "The Dead Marshes") { enemyDesc = "Ghoulish lights flicker as Orc patrols hunt you through the bog!"; hazardGif = "deadmarshes.gif"; }
+    else if (hazardName === "The Black Gate") { enemyDesc = "Easterling forces and Mordor Orcs guard the ash-plains!"; hazardGif = "blackgate.gif"; }
+    else if (hazardName === "Cirith Ungol") { enemyDesc = "Shelob's brood and vicious Uruks swarm the narrow stairs!"; hazardGif = "shelob.gif"; }
 
     let availableAlly;
+    
+    // NEW LOGIC: Lock the Ents behind the Wooden Token
     if (state.inventory.woodenTokens > 0) {
         availableAlly = { text: "Call the Ents (Uses 1 Wooden Token)", type: "ents", cost: 1, resource: "woodenTokens" };
     } else {
@@ -407,7 +562,9 @@ function triggerHazardEncounter(hazardName, dailyMessage) {
         availableAlly = standardAllies[Math.floor(Math.random() * standardAllies.length)];
     }
 
-    showModal(`Arrived at ${hazardName}`, `${dailyMessage}<br><br>**HAZARD ENCOUNTERED!**<br>${enemyDesc}`, [
+    const message = `${dailyMessage}<br><br>**HAZARD ENCOUNTERED!**<br>${enemyDesc}<br><br>How will the Fellowship proceed?`;
+
+    showModal(`Arrived at ${hazardName}`, message, [
         { text: "Charge into Battle", action: () => resolveHazard('fight', hazardName) },
         { text: "Take a Detour (3 Days)", action: () => resolveHazard('detour', hazardName) },
         { text: availableAlly.text, action: () => resolveHazard('ally', hazardName, availableAlly) }
@@ -421,136 +578,221 @@ function resolveHazard(choice, hazardName, allyData = null) {
     if (choice === 'fight') {
         let hasGear = (state.inventory.arrows >= 5 && state.inventory.whetstones >= 1 && state.inventory.axeHandles >= 1);
         let vanguardIntact = (state.party.find(m => m.name === 'Aragorn').isAlive && state.party.find(m => m.name === 'Legolas').isAlive && state.party.find(m => m.name === 'Gimli').isAlive);
-        
-        state.inventory.arrows = Math.max(0, state.inventory.arrows - Math.floor(Math.random() * 6));
-        state.inventory.whetstones = Math.max(0, state.inventory.whetstones - Math.floor(Math.random() * 3));
-        state.inventory.axeHandles = Math.max(0, state.inventory.axeHandles - Math.floor(Math.random() * 3));
 
-        resultMessage = `You charged! Gear was lost in the chaos.<br>`;
-        if (!hasGear) resultMessage += "**Your dull blades and empty quivers offered little defense!**<br>";
-        if (!vanguardIntact) resultMessage += "<span style='color: red;'>**The vanguard has crumbled! (+15 DMG)**</span><br>";
+        let arrowsLost = Math.min(state.inventory.arrows, Math.floor(Math.random() * 6)); 
+        let whetstonesLost = Math.min(state.inventory.whetstones, Math.floor(Math.random() * 3)); 
+        let axeHandlesLost = Math.min(state.inventory.axeHandles, Math.floor(Math.random() * 3)); 
+
+        state.inventory.arrows -= arrowsLost; state.inventory.whetstones -= whetstonesLost; state.inventory.axeHandles -= axeHandlesLost;
+
+        resultMessage = `You charged into battle! You lost ${arrowsLost} arrows, ${whetstonesLost} whetstones, and ${axeHandlesLost} axe handles.<br><br>`;
+        if (!hasGear) resultMessage += "**Your weapons were dull and quivers empty! The enemy overwhelmed your defenses.**<br>";
+        if (!vanguardIntact) resultMessage += "<span style='color: red;'>**Without Aragorn, Legolas, and Gimli fighting together, the enemy broke through your vanguard! (+15 Damage to all)**</span><br><br>";
 
         state.party.forEach(m => {
             if (m.isAlive) {
-                let dmg = (hasGear ? Math.floor(Math.random() * 21) : Math.floor(Math.random() * 21) + 15) + (vanguardIntact ? 0 : 15);
-                m.health = Math.max(0, m.health - dmg);
+                let dmg = hasGear ? Math.floor(Math.random() * 21) : Math.floor(Math.random() * 21) + 15;
+                if (!vanguardIntact) dmg += 15; 
+                m.health -= dmg;
                 resultMessage += `${m.name} took ${dmg} dmg. `;
-                if (m.health === 0) { m.isAlive = false; resultMessage += `**${m.name} has fallen!** `; }
+                if (m.health <= 0) { m.health = 0; m.isAlive = false; resultMessage += `<br>**${m.name} WAS SLAIN!**<br>`; }
             }
         });
+
     } else if (choice === 'detour') {
-        state.day += 3; state.ringCorruption += 8;
-        state.inventory.food = Math.max(0, state.inventory.food - (livingCount * 6));
-        resultMessage = `A 3-day detour cost you food and time.`;
+        let lostDays = 3; let foodCost = livingCount * 2 * lostDays; 
+        state.day += lostDays; state.ringCorruption += 8;
+        if (state.inventory.food >= foodCost) {
+            state.inventory.food -= foodCost; resultMessage = `You took the long way around. It cost you ${lostDays} days and ${foodCost} food.`;
+        } else {
+            state.inventory.food = 0; resultMessage = `You ran out of food! The party starved during the extra days.<br>`;
+            state.party.forEach(m => {
+                if (m.isAlive) { m.health -= 20; if (m.health <= 0) { m.health = 0; m.isAlive = false; resultMessage += `<br>${m.name} starved to death!`; } }
+            });
+        }
     } else if (choice === 'ally') {
-        state.inventory[allyData.resource] -= allyData.cost;
-        resultMessage = `Allies cleared the path safely!`;
+        if (state.inventory[allyData.resource] >= allyData.cost) {
+            state.inventory[allyData.resource] -= allyData.cost;
+            resultMessage = `The allies arrived! They cleared the path and guided you safely through with no injuries.`;
+        } else {
+            resultMessage = `You didn't have the resources to pay them! The allies vanished, leaving you to the horde.<br><br>`;
+            state.party.forEach(m => {
+                if (m.isAlive) {
+                    let dmg = Math.floor(Math.random() * 16) + 15; m.health -= dmg; resultMessage += `${m.name} took ${dmg} dmg. `;
+                    if (m.health <= 0) { m.health = 0; m.isAlive = false; resultMessage += `<br>**${m.name} was slain!**<br>`; }
+                }
+            });
+        }
     }
 
     const ringbearer = state.party.find(m => m.isRingbearer);
-    if (!ringbearer.isAlive || state.ringCorruption >= 100) { 
-        showModal("Game Over", resultMessage + "<br><br>The quest has failed.", [{text: "Restart", action: () => location.reload()}], 'frodo-fallen.gif'); 
-    } else {
-        updateUI(); showModal("Resolved", resultMessage);
+    if (!ringbearer.isAlive) { 
+        showModal("Game Over", resultMessage + "<br><br>Frodo has fallen. The Ring is lost.", [{text: "Try Again", action: () => location.reload()}], 'frodo-fallen.gif'); 
+        return; 
     }
-}
-
-// --- TRAVEL LOOP ---
-travelBtn.addEventListener('click', () => {
-    state.day++;
-    let arrivedAtLandmark = false;
-    let nextLandmark = landmarks[state.nextLandmarkIndex];
-    let miles = Math.floor(Math.random() * 10) + 20; 
-    state.ringCorruption += 1;
-
-    if (nextLandmark && (state.distanceTraveled + miles) >= nextLandmark.distance) {
-        miles = nextLandmark.distance - state.distanceTraveled; 
-        state.currentLocation = nextLandmark.name; 
-        state.nextLandmarkIndex++; arrivedAtLandmark = true;
-    } else {
-        let currentDist = state.distanceTraveled + miles;
-        if (currentDist >= 1700) state.currentLocation = "Gondor";
-        else if (currentDist >= 1000) state.currentLocation = "Dead Marshes";
-        else if (currentDist >= 500) state.currentLocation = "Rohan";
-        else state.currentLocation = "The Wilds";
+    if (state.ringCorruption >= 100) { 
+        showModal("Game Over", resultMessage + "<br><br>The Ring has fully corrupted Frodo. The Nazgûl have claimed their prize.", [{text: "Try Again", action: () => location.reload()}], 'nazgul.gif'); 
+        return; 
     }
-
-    state.distanceTraveled += miles;
-    let dailyMsg = `Traveled ${miles} miles. `;
-    
-    let passiveFood = 0;
-    ['Sam', 'Merry', 'Pippin'].forEach(n => { if(state.party.find(m => m.name === n).isAlive) passiveFood += Math.floor(Math.random() * 3) + 1; });
-    state.inventory.food += passiveFood;
-    dailyMsg += `Hobbits scavenged +${passiveFood} food. `;
-
-    let eventData = !arrivedAtLandmark ? getRandomEvent() : { text: "", buttons: [{text: 'Continue', action: null}], gifUrl: null };
-    dailyMsg += eventData.text;
-
-    let livingCount = state.party.filter(m => m.isAlive).length;
-    let isStarving = false;
-    if (state.inventory.food >= livingCount * 2) state.inventory.food -= livingCount * 2;
-    else { state.inventory.food = 0; isStarving = true; dailyMsg += "<br><span style='color: red;'>Starving!</span>"; }
-
-    state.party.forEach(m => {
-        if (!m.isAlive) return;
-        let pChange = -(Math.floor(Math.random() * 3)) + (isStarving ? -15 : 0);
-        if (m.status === 'Sick') pChange -= 5;
-        if (m.status === 'Injured') pChange -= 8;
-        if (m.status === 'Poisoned') pChange -= 12;
-        if (m.status !== 'Healthy') { m.statusDays--; if (m.statusDays <= 0) m.status = 'Healthy'; }
-        m.health = Math.min(100, Math.max(0, m.health + pChange));
-        if (m.health === 0) { m.isAlive = false; dailyMsg += `<br>**${m.name} has fallen!**`; }
-    });
 
     updateUI();
+    showModal("Encounter Resolved", resultMessage);
+}
+
+// --- MAIN TRAVEL LOOP (UPDATED) ---
+travelBtn.addEventListener('click', () => {
+    state.day++;
+    let dailyMessage = "";
+    let arrivedAtLandmark = false;
+    let nextLandmark = landmarks[state.nextLandmarkIndex];
+    const livingCount = state.party.filter(m => m.isAlive).length;
+
+    let milesCovered = Math.floor(Math.random() * 10) + 20; // 20-29 miles
+    let foodNeeded = livingCount * 2; 
+    state.ringCorruption += 1;
+
+    // Landmark Check Logic
+    if (nextLandmark && (state.distanceTraveled + milesCovered) >= nextLandmark.distance) {
+        milesCovered = nextLandmark.distance - state.distanceTraveled; 
+        state.currentLocation = nextLandmark.name; 
+        state.nextLandmarkIndex++; 
+        arrivedAtLandmark = true;
+    } else { 
+        // Persistent Regional Map Logic
+        let currentDist = state.distanceTraveled + milesCovered;
+        if (currentDist >= 1700) state.currentLocation = "Gondor / Ithilien";
+        else if (currentDist >= 1500) state.currentLocation = "Morgul Vale";
+        else if (currentDist >= 1250) state.currentLocation = "Wastes of the Morannon";
+        else if (currentDist >= 1000) state.currentLocation = "The Dead Marshes";
+        else if (currentDist >= 750) state.currentLocation = "Emyn Muil";
+        else if (currentDist >= 500) state.currentLocation = "Celebrant / Rohan";
+        else if (currentDist >= 400) state.currentLocation = "Dimrill Dale";
+        else if (currentDist >= 150) state.currentLocation = "Hollin";
+        else state.currentLocation = "In the Wilds";
+    }
+
+    state.distanceTraveled += milesCovered;
+    dailyMessage += `You traveled ${milesCovered} miles today. \n`;
+
+     // RNG Hobbit Foraging (Floor raised to 1)
+    let passiveFood = 0;
+    if (state.party.find(m => m.name === 'Sam').isAlive) passiveFood += Math.floor(Math.random() * 3) + 1;
+    if (state.party.find(m => m.name === 'Merry').isAlive) passiveFood += Math.floor(Math.random() * 3) + 1;
+    if (state.party.find(m => m.name === 'Pippin').isAlive) passiveFood += Math.floor(Math.random() * 3) + 1;
+
+    if (passiveFood > 0) {
+        state.inventory.food += passiveFood;
+        dailyMessage += `The Hobbits scavenged +${passiveFood} food while walking. \n`;
+    }
+
+   let eventData = { text: "", buttons: [{text: 'Continue', action: null}], gifUrl: null };
+    let currentGif = "walking.gif"; 
+
+    if (!arrivedAtLandmark) {
+        eventData = getRandomEvent();
+        dailyMessage += eventData.text;
+        if (eventData.gifUrl) currentGif = eventData.gifUrl;
+    }
+
+    // Starvation Check
+    let isStarving = false;
+    if (state.inventory.food >= foodNeeded) { 
+        state.inventory.food -= foodNeeded; 
+    } else { 
+        state.inventory.food = 0; 
+        isStarving = true;
+        dailyMessage += "<br><span style='color: red;'>You are out of food! The Fellowship is starving.</span> \n"; 
+    }
+
+    // --- INDIVIDUAL HEALTH UPDATE LOOP ---
+    state.party.forEach(stateMember => {
+        if (!stateMember.isAlive) return;
+
+        // Individual RNG roll for daily travel wear (0 to 2 damage)
+        let individualWear = Math.floor(Math.random() * 3);
+        let personalHealthChange = -individualWear;
+
+        if (stateMember.status !== 'Healthy') {
+            stateMember.statusDays--;
+            if (stateMember.statusDays <= 0) {
+                stateMember.status = 'Healthy';
+                dailyMessage += `<br><span style="color: #4a5d23;">${stateMember.name} has recovered!</span>\n`;
+            } else {
+                if (stateMember.status === 'Sick') personalHealthChange -= 5;
+                if (stateMember.status === 'Injured') personalHealthChange -= 8;
+                if (stateMember.status === 'Poisoned') personalHealthChange -= 12;
+            }
+        }
+
+        // Apply starvation penalty if applicable
+        if (isStarving) {
+            personalHealthChange -= 15;
+        }
+
+        stateMember.health += personalHealthChange;
+        stateMember.health = Math.min(100, Math.max(0, stateMember.health));
+
+        if (stateMember.health <= 0 && stateMember.isAlive) { 
+            stateMember.health = 0; 
+            stateMember.isAlive = false; 
+            dailyMessage += `<br><span style='color: red; font-size: 1.2em;'>**${stateMember.name} has fallen...**</span> \n`; 
+            currentGif = `${stateMember.name.toLowerCase()}-fallen.gif`; 
+        }
+    });
+
+    const ringbearer = state.party.find(m => m.isRingbearer);
+    if (!ringbearer.isAlive) { showModal("Game Over", dailyMessage + "<br><br>Frodo has fallen. The Ring is lost.", [{text: "Try Again", action: () => location.reload()}], 'frodo-fallen.gif'); return; }
+
+    if (state.ringCorruption >= 100) { showModal("Game Over", dailyMessage + "<br><br>The Ring has fully corrupted Frodo. The Nazgûl have claimed their prize.", [{text: "Try Again", action: () => location.reload()}], 'nazgul.gif'); return; }
+
+    updateUI();
+
     if (arrivedAtLandmark) {
-        if (nextLandmark.type === 'finish') showModal("Victory!", "Mount Doom reached!", [{text: "Restart", action: () => location.reload()}], 'victory.gif');
-        else if (nextLandmark.type === 'hazard') triggerHazardEncounter(nextLandmark.name, dailyMsg);
-        else showModal("Arrived", dailyMsg + `<br><br>At ${nextLandmark.name}`, [{text: 'Continue', action: null}], 'landmark.gif');
+        if (nextLandmark.type === 'finish') {
+            let finalScoreText = calculateScore(); showModal("Victory!", `You have reached the fires of Mount Doom and destroyed the One Ring!<br>${finalScoreText}`, [{text: "Play Again", action: () => location.reload()}], 'victory.gif');
+        } else if (nextLandmark.type === 'hazard') {
+            triggerHazardEncounter(nextLandmark.name, dailyMessage);
+        } else {
+            showModal("Landmark Reached!", `${dailyMessage}<br><br>You have arrived at: ${nextLandmark.name}.`, [{text: 'Continue', action: null}], 'landmark.gif');
+        }
     } else {
-        showModal(`Day ${state.day}`, dailyMsg, eventData.buttons, eventData.gifUrl || 'walking.gif');
+        showModal(`Day ${state.day}`, dailyMessage, eventData.buttons, currentGif);
     }
 });
 
 restBtn.addEventListener('click', () => {
-    const living = state.party.filter(m => m.isAlive).length;
-    if (state.inventory.food >= living * 2) {
-        state.inventory.food -= living * 2; state.day++; state.ringCorruption += 2;
-        state.party.forEach(m => { if (m.isAlive) m.health = Math.min(100, m.health + 15); });
-        let campMsg = "Healed 15 HP.";
-        if (state.party.find(m => m.name === 'Legolas').isAlive) { 
-            let f = Math.floor(Math.random() * 3) + 2; state.inventory.arrows += f; 
-            campMsg += `<br>Legolas fletched +${f} arrows.`;
+    const livingCount = state.party.filter(m => m.isAlive).length;
+    let foodNeeded = livingCount * 2;
+
+    if (state.inventory.food >= foodNeeded) {
+        state.inventory.food -= foodNeeded;
+        state.party.forEach(m => { if (m.isAlive) { m.health = Math.min(100, m.health + 15); } });
+        state.day++; 
+        state.ringCorruption += 2; 
+
+        let campMsg = "The Fellowship rested and healed 15 HP, but the Ring's corruption grows heavier.";
+
+        // NEW LOGIC: Legolas fletches arrows while resting
+        let legolas = state.party.find(m => m.name === 'Legolas').isAlive;
+        if (legolas) {
+            let craftedArrows = Math.floor(Math.random() * 3) + 2; // Crafts 2 to 4 arrows
+            state.inventory.arrows += craftedArrows;
+            campMsg += `<br><br><span style="color: #4a5d23;">Legolas spent the evening fletching new arrows from fallen branches. (+${craftedArrows} Arrows)</span>`;
         }
-        updateUI(); showModal("Camped", campMsg, [{text: "Continue", action: null}], 'camp.gif');
-    } else showModal("No Food", "Cannot rest!");
-});
 
-tradeBtn.addEventListener('click', () => {
-    document.getElementById('shop-currency').innerText = state.inventory.currency;
-    const el = document.getElementById('shop-items');
-    el.innerHTML = '<h4>Shop</h4>';
-    shopInventory.forEach(i => { el.innerHTML += `<p>${i.name} (${i.cost}c) <button onclick="buyItem('${i.id}', ${i.cost}, ${i.qty})">Buy</button></p>`; });
-    shopModal.style.display = 'block';
-});
-
-function buyItem(id, c, q) { if (state.inventory.currency >= c) { state.inventory.currency -= c; state.inventory[id] += q; tradeBtn.click(); updateUI(); } }
-function closeShop() { shopModal.style.display = 'none'; }
-
-healBtn.addEventListener('click', () => {
-    let b = []; state.party.forEach(m => { if (m.isAlive && (m.health < 100 || m.status !== 'Healthy')) b.push({text: m.name, action: () => applyAthelas(m.name)}); });
-    if (b.length > 0) showModal("Heal", "Who?", b, 'kingsfoil.gif');
-});
-
-function applyAthelas(n) { state.inventory.medicine--; let m = state.party.find(p => p.name === n); m.health = Math.min(100, m.health + 30); m.status = 'Healthy'; updateUI(); }
-
-pipeBtn.addEventListener('click', () => {
-    if (state.party.find(m => m.name === 'Gandalf').isAlive && state.inventory.pipeweed > 0) {
-        state.inventory.pipeweed--; state.ringCorruption = Math.max(0, state.ringCorruption - 15); updateUI();
-        showModal("Peace", "-15% Corruption", [{text: "Continue", action: null}], 'pipeweed.gif');
+        updateUI();
+        showModal("Camped", campMsg, [{text: "Continue", action: null}], 'camp.gif'); 
+    } else { 
+        showModal("Cannot Rest", "You do not have enough food to make camp safely!"); 
     }
 });
 
+// RESTORED: Full flavor text for the game start initialization
 if (state.day === 1 && state.distanceTraveled === 0) {
-    showModal("Start", "Begin your journey.", [{text: "Shop", action: () => tradeBtn.click()}, {text: "Go", action: null}], 'waterfall.gif');
+    showModal(
+        "The Fellowship Departs",
+        "The Council of Elrond has concluded. You must bear the One Ring to Mount Doom.<br><br>Your supplies will rot, the Ring will test you, and the wilderness will bleed your strength. Forage carefully, and protect the vanguard.<br><br>May the stars shine upon your faces!",
+        [ { text: "Visit Trading Post", action: () => tradeBtn.click() }, { text: "Set Forth", action: null } ],
+        'waterfall.gif' 
+    );
 }
