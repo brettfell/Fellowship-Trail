@@ -1,8 +1,6 @@
-// Bump this version number whenever you change your code or add new images!
-const CACHE_NAME = 'fellowship-trail-v2'; 
+const CACHE_NAME = 'fellowship-trail-v3'; 
 
 const ASSETS = [
-    // Core Files
     './',
     './index.html',
     './style.css',
@@ -11,32 +9,16 @@ const ASSETS = [
     './icon.png',
 
     // Core UI & Actions
-    './waterfall.gif',
-    './walking.gif',
-    './camp.gif',
-    './meat-good.gif',
-    './kingsfoil.gif',
-    './pipeweed.gif',
+    './waterfall.gif', './walking.gif', './camp.gif', './meat-good.gif', 
+    './kingsfoil.gif', './pipeweed.gif',
 
     // Random Events
-    './spider.gif',
-    './gollum.gif',
-    './gollum-pouting.gif',
-    './meat-bad.gif',
-    './trade.gif',
-    './figwit.gif',
-    './ranger-trade.gif',
-    './nazgul.gif',
+    './spider.gif', './gollum.gif', './gollum-pouting.gif', './meat-bad.gif', 
+    './trade.gif', './figwit.gif', './ranger-trade.gif', './nazgul.gif',
 
     // Landmarks & Hazards
-    './landmark.gif',
-    './caradhras.gif',
-    './moria.gif',
-    './ambush.gif',
-    './deadmarshes.gif',
-    './blackgate.gif',
-    './shelob.gif',
-    './victory.gif',
+    './landmark.gif', './caradhras.gif', './moria.gif', './ambush.gif', 
+    './deadmarshes.gif', './blackgate.gif', './shelob.gif', './victory.gif',
 
     // Character Status
     './frodo-status.gif', './sam-status.gif', './aragorn-status.gif', 
@@ -52,13 +34,11 @@ const ASSETS = [
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => {
-            console.log('Caching offline assets...');
             return cache.addAll(ASSETS);
         })
     );
 });
 
-// The Fetch Event: Look in the cache first, then go to the network if missing
 self.addEventListener('fetch', event => {
     event.respondWith(
         caches.match(event.request).then(response => {
@@ -67,7 +47,6 @@ self.addEventListener('fetch', event => {
     );
 });
 
-// The Activate Event: Clean up old caches when you bump the version number
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(cacheNames => {
